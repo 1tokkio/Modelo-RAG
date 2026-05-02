@@ -19,7 +19,7 @@ Agente inteligente que apoya las decisiones de reabastecimiento de inventario pa
 ## Estructura del proyecto
 
 ```
-retailsur-agent/
+Modelo-RAG/
 ├── main.py              # Punto de entrada — agente interactivo y modo demo
 ├── rag/
 │   ├── pipeline.py      # Pipeline RAG: indexación, retriever, chain
@@ -43,8 +43,8 @@ retailsur-agent/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/retailsur-agent.git
-cd retailsur-agent
+git clone https://github.com/1tokkio/Modelo-RAG.git
+cd Modelo-RAG
 
 # 2. Crear entorno virtual
 python -m venv venv
