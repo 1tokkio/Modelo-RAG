@@ -141,8 +141,8 @@ Analiza el SKU ELEC-001 considerando el Cyber Monday próximo
 
 ## Uso de IA declarado
 
-Este proyecto utilizó Claude (Anthropic) como apoyo en la estructura del código y documentación. Todas las decisiones de diseño arquitectónico, selección de tecnologías y análisis del caso organizacional son propias del equipo. Referencia de citación: https://bibliotecas.duoc.cl/ia
+Este proyecto utilizó Claude (Anthropic) como apoyo en la estructura del código y documentación. Referencia de citación: https://bibliotecas.duoc.cl/ia
 
 ---
 
-*RetailSur S.A. es una empresa ficticia creada con fines académicos.*
+*Retail S.A. es una empresa ficticia creada con fines académicos.*
