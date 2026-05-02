@@ -1,8 +1,8 @@
-# RetailSur Agent — Agente de Gestión de Inventario con LLM y RAG
+# Retail Agent — Agente de Gestión de Inventario con LLM y RAG
 
 **ISY0101 Ingeniería de Soluciones con IA | DuocUC | 2025**
 
-Agente inteligente que apoya las decisiones de reabastecimiento de inventario para RetailSur S.A., combinando datos internos del ERP con contexto externo (clima, feriados, tendencias) mediante un pipeline RAG + GPT-4o.
+Agente inteligente que apoya las decisiones de reabastecimiento de inventario para Retail S.A., combinando datos internos del ERP con contexto externo (clima, feriados, tendencias) mediante un pipeline RAG + GPT-4o.
 
 ---
 
@@ -19,7 +19,7 @@ Agente inteligente que apoya las decisiones de reabastecimiento de inventario pa
 ## Estructura del proyecto
 
 ```
-retailsur-agent/
+Modelo-RAG/
 ├── main.py              # Punto de entrada — agente interactivo y modo demo
 ├── rag/
 │   ├── pipeline.py      # Pipeline RAG: indexación, retriever, chain
@@ -43,8 +43,8 @@ retailsur-agent/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/retailsur-agent.git
-cd retailsur-agent
+git clone https://github.com/1tokkio/Modelo-RAG.git
+cd Modelo-RAG
 
 # 2. Crear entorno virtual
 python -m venv venv
@@ -141,8 +141,8 @@ Analiza el SKU ELEC-001 considerando el Cyber Monday próximo
 
 ## Uso de IA declarado
 
-Este proyecto utilizó Claude (Anthropic) como apoyo en la estructura del código y documentación. Todas las decisiones de diseño arquitectónico, selección de tecnologías y análisis del caso organizacional son propias del equipo. Referencia de citación: https://bibliotecas.duoc.cl/ia
+Este proyecto utilizó Claude (Anthropic) como apoyo en la estructura del código y documentación. Referencia de citación: https://bibliotecas.duoc.cl/ia
 
 ---
 
-*RetailSur S.A. es una empresa ficticia creada con fines académicos.*
+*Retail S.A. es una empresa ficticia creada con fines académicos.*
