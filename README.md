@@ -1,8 +1,8 @@
-# RetailSur Agent — Agente de Gestión de Inventario con LLM y RAG
+# Retail Agent — Agente de Gestión de Inventario con LLM y RAG
 
 **ISY0101 Ingeniería de Soluciones con IA | DuocUC | 2025**
 
-Agente inteligente que apoya las decisiones de reabastecimiento de inventario para RetailSur S.A., combinando datos internos del ERP con contexto externo (clima, feriados, tendencias) mediante un pipeline RAG + GPT-4o.
+Agente inteligente que apoya las decisiones de reabastecimiento de inventario para Retail S.A., combinando datos internos del ERP con contexto externo (clima, feriados, tendencias) mediante un pipeline RAG + GPT-4o.
 
 ---
 
