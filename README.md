@@ -1,148 +1,123 @@
-# Retail Agent — Agente de Gestión de Inventario con LLM y RAG
+# Retail S.A. — Agente de Inventario con LLM y RAG
 
-**ISY0101 Ingeniería de Soluciones con IA | DuocUC | 2025**
+Solución de soporte a decisiones en gestión de inventario, implementada con LangChain, FastAPI y GitHub Models.
 
-Agente inteligente que apoya las decisiones de reabastecimiento de inventario para Retail S.A., combinando datos internos del ERP con contexto externo (clima, feriados, tendencias) mediante un pipeline RAG + GPT-4o.
+## Descripción
 
----
+Sistema que recibe consultas sobre inventario, analiza el estado de productos por SKU y genera recomendaciones de pedido, usando un pipeline RAG sobre la base de conocimiento interna de la empresa.
 
-## Stack tecnológico
+## Tecnologías
 
-| Componente | Tecnología |
-|---|---|
-| LLM | OpenAI GPT-4o |
-| Framework agente/RAG | LangChain 0.3 |
-| Vector store | ChromaDB (persistente local) |
-| Embeddings | OpenAI text-embedding-3-small |
-| ERP | Odoo 17 (simulado con mock REST) |
+- Python 3.10+
+- FastAPI — API REST
+- LangChain — orquestación del pipeline RAG
+- ChromaDB — base de datos vectorial
+- GitHub Models (Azure Inference API) — LLM y embeddings
+- GPT-4o-mini — generación de respuestas
+- text-embedding-3-small — embeddings semánticos
 
-## Estructura del proyecto
+## Estructura
 
 ```
-Modelo-RAG/
-├── main.py              # Punto de entrada — agente interactivo y modo demo
-├── rag/
-│   ├── pipeline.py      # Pipeline RAG: indexación, retriever, chain
-│   ├── loader.py        # Conversión de datos internos/externos a documentos
-│   └── prompts.py       # System prompt y templates del agente
-├── erp/
-│   └── odoo_mock.py     # Simulación de la API REST de Odoo 17
+retailsa-rag/
+├── main.py              # API FastAPI con los 3 endpoints
+├── rag.py               # Pipeline RAG con ChromaDB
 ├── data/
-│   └── sample_data.py   # Datos de ejemplo: ventas, stock, contexto externo
-├── requirements.txt
+│   └── inventario.txt   # Base de conocimiento
+├── frontend.html        # Frontend para pruebas
+├── .env.example         # Plantilla de variables de entorno
+├── .gitignore
 └── README.md
 ```
 
 ## Instalación
 
-### Requisitos previos
-- Python 3.11 o superior
-- Cuenta OpenAI con acceso a GPT-4o y API key activa
-
-### Pasos
-
+**1. Clonar el repositorio**
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/1tokkio/Modelo-RAG.git
-cd Modelo-RAG
+git clone https://github.com/tu-usuario/retailsa-rag.git
+cd retailsa-rag
+```
 
-# 2. Crear entorno virtual
+**2. Crear y activar entorno virtual**
+```bash
 python -m venv venv
-source venv/bin/activate       # Linux/macOS
-# venv\Scripts\activate        # Windows
 
-# 3. Instalar dependencias
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
+```
+
+**3. Instalar dependencias**
+```bash
 pip install -r requirements.txt
+```
 
-# 4. Configurar la API key de OpenAI
+**4. Configurar variables de entorno**
+```bash
 cp .env.example .env
-# Editar .env y agregar tu clave:
-# OPENAI_API_KEY=sk-...
 ```
-
-### Archivo .env
+Edita `.env` con tu token de GitHub Models:
 ```
-OPENAI_API_KEY=sk-tu-clave-aqui
+OPENAI_BASE_URL="https://models.inference.ai.azure.com"
+OPENAI_EMBEDDINGS_URL="https://models.github.ai/inference"
+GITHUB_TOKEN="tu_token_aqui"
 ```
 
 ## Ejecución
 
-### Modo interactivo (chat)
 ```bash
-python main.py
+uvicorn main:app --reload
 ```
 
-Comandos disponibles en el chat:
-- `/alertas` — Muestra alertas automáticas de reorden del ERP
-- `/erp` — Estado actual del inventario
-- `/pedido` — Crear una orden de compra manualmente
-- `/salir` — Terminar la sesión
+La primera vez construye el índice vectorial en `chroma_db/`. Las siguientes veces lo carga desde disco.
 
-### Modo demo (casos de uso predefinidos)
+Servidor disponible en: `http://127.0.0.1:8000`
+
+## Pruebas
+
+**Opción 1 — Frontend visual**  
+Abre `frontend.html` en el navegador con el servidor corriendo.
+
+**Opción 2 — Swagger UI**  
+Abre `http://127.0.0.1:8000/docs`
+
+**Opción 3 — curl**
 ```bash
-python main.py --demo
-```
-Ejecuta 5 casos de uso representativos: análisis de alertas, SKU específico, impacto climático, creación de orden de compra y consulta de política interna.
+curl -X POST http://127.0.0.1:8000/consulta \
+  -H "Content-Type: application/json" \
+  -d '{"pregunta": "qué productos tienen stock crítico"}'
 
-### Reconstruir índice vectorial
+curl -X POST http://127.0.0.1:8000/alerta \
+  -H "Content-Type: application/json" \
+  -d '{"sku": "ELEC-001"}'
+
+curl -X POST http://127.0.0.1:8000/pedido \
+  -H "Content-Type: application/json" \
+  -d '{"sku": "ELEC-001", "stock_actual": 8}'
+```
+
+## Endpoints
+
+| Endpoint | Descripción |
+|---|---|
+| `POST /consulta` | Consulta libre sobre inventario |
+| `POST /alerta` | Análisis de estado de un SKU específico |
+| `POST /pedido` | Recomendación de orden de compra |
+
+## Regenerar base vectorial
+
+Si modificas `data/inventario.txt`, elimina `chroma_db/` y reinicia:
 ```bash
-python main.py --rebuild
-```
-Útil cuando los datos del ERP se actualizan. Elimina y reconstruye ChromaDB desde cero.
+# Windows
+Remove-Item -Recurse -Force chroma_db
 
-### Probar módulos por separado
-```bash
-# Test del ERP mock
-python erp/odoo_mock.py
-
-# Test del loader de documentos
-python rag/loader.py
-
-# Test del pipeline RAG (requiere API key)
-python rag/pipeline.py
+# Mac/Linux
+rm -rf chroma_db
 ```
 
-## Flujo del sistema
+## Autores
 
-```
-Usuario (lenguaje natural)
-        ↓
-   RetailSurRAGPipeline.query()
-        ↓
-   ChromaDB Retriever (MMR, top-5)
-   ┌─────────────────────────────┐
-   │  Fuentes internas (ERP):    │
-   │  · Historial ventas         │
-   │  · Stock actual             │
-   │  · Políticas de compra      │
-   │                             │
-   │  Fuentes externas:          │
-   │  · Clima (Open-Meteo)       │
-   │  · Feriados (OpenHolidays)  │
-   │  · Tendencias (Trends)      │
-   └─────────────────────────────┘
-        ↓
-   GPT-4o (temperatura=0.1)
-        ↓
-   Respuesta estructurada + trazabilidad de fuentes
-        ↓
-   (Opcional) OdooMockClient.create_purchase_order()
-```
-
-## Ejemplos de consultas
-
-```
-¿Qué SKUs están en estado crítico de inventario?
-Analiza el SKU ELEC-001 considerando el Cyber Monday próximo
-¿Cómo afecta el pronóstico climático a la demanda de calefacción?
-¿Cuántas unidades de Notebook debo pedir esta semana?
-¿Qué pedidos requieren aprobación del gerente?
-```
-
-## Uso de IA declarado
-
-Este proyecto utilizó Claude (Anthropic) como apoyo en la estructura del código y documentación. Referencia de citación: https://bibliotecas.duoc.cl/ia
-
----
-
-*Retail S.A. es una empresa ficticia creada con fines académicos.*
+- ISY0101 — Ingeniería de Soluciones con IA
+- DuocUC — 2025

@@ -1,0 +1,66 @@
+# BASE DE CONOCIMIENTO — GESTIÓN DE INVENTARIO RETAIL S.A.
+
+## PRODUCTOS Y CATEGORÍAS
+
+### Electrónica
+- SKU ELEC-001: Smart TV 55 pulgadas. Proveedor: TechDistrib Ltda. Lead time: 12 días. Costo unitario: $389.000 CLP. Stock mínimo: 15 unidades.
+- SKU ELEC-002: Notebook Core i5. Proveedor: TechDistrib Ltda. Lead time: 15 días. Costo unitario: $429.000 CLP. Stock mínimo: 10 unidades.
+
+### Hogar
+- SKU HOGAR-001: Estufa a Pellet 15kW. Proveedor: Calefacción Sur S.A. Lead time: 21 días. Costo unitario: $289.000 CLP. Stock mínimo: 20 unidades.
+- SKU HOGAR-002: Refrigerador 350L No Frost. Proveedor: ElectroHogar Ltda. Lead time: 18 días. Costo unitario: $449.000 CLP. Stock mínimo: 8 unidades.
+
+### Vestuario
+- SKU VEST-001: Parka Impermeable Hombre. Proveedor: TextilSur SpA. Lead time: 10 días. Costo unitario: $39.000 CLP. Stock mínimo: 25 unidades.
+
+### Ferretería
+- SKU FERR-001: Generador Gasolina 2500W. Proveedor: HerramientasPro. Lead time: 14 días. Costo unitario: $189.000 CLP. Stock mínimo: 5 unidades.
+
+## INVENTARIO ACTUAL
+
+- ELEC-001 (Smart TV): Stock actual 8 unidades. Estado: CRÍTICO (bajo mínimo de 15).
+- ELEC-002 (Notebook): Stock actual 3 unidades. Estado: CRÍTICO (bajo mínimo de 10).
+- HOGAR-001 (Estufa Pellet): Stock actual 24 unidades. Estado: NORMAL.
+- HOGAR-002 (Refrigerador): Stock actual 11 unidades. Estado: NORMAL.
+- VEST-001 (Parka): Stock actual 34 unidades. Estado: NORMAL.
+- FERR-001 (Generador): Stock actual 6 unidades. Estado: MODERADO.
+
+## HISTORIAL DE VENTAS (últimos 3 meses)
+
+- ELEC-001: Oct 45, Nov 62, Dic 130 unidades. Tendencia: CRECIENTE.
+- ELEC-002: Oct 28, Nov 35, Dic 89 unidades. Tendencia: CRECIENTE.
+- HOGAR-001: Oct 92, Nov 78, Dic 41 unidades. Tendencia: DECRECIENTE (fin temporada invierno).
+- HOGAR-002: Oct 19, Nov 22, Dic 51 unidades. Tendencia: CRECIENTE.
+- VEST-001: Oct 67, Nov 55, Dic 30 unidades. Tendencia: DECRECIENTE.
+- FERR-001: Oct 14, Nov 18, Dic 12 unidades. Tendencia: VARIABLE.
+
+## CONTEXTO EXTERNO
+
+### Clima
+Pronóstico región Los Lagos próximas 4 semanas: temperaturas mínimas entre 4°C y 8°C, precipitaciones frecuentes. Frente de frío intenso proyectado para segunda quincena. Favorable para demanda de calefacción y prendas de abrigo.
+
+### Feriados y eventos comerciales
+- Cyber Monday: primer lunes de diciembre. Alta demanda proyectada en electrónica +85% sobre promedio.
+- Navidad: 25 de diciembre. Pico en electrónica, hogar y vestuario.
+- Año Nuevo: 1 de enero. Menor impacto en ventas.
+
+### Tendencias de mercado
+- Búsquedas "Smart TV oferta" región Los Lagos: +120% respecto al mes anterior.
+- Búsquedas "Notebook estudiante": +95%.
+- Búsquedas "Estufa pellet": -30% (fin de temporada).
+- Búsquedas "Generador luz": +60% por cortes eléctricos en zona rural.
+
+## POLÍTICAS INTERNAS DE COMPRA
+
+- Punto de reorden: se activa cuando stock actual cae bajo stock mínimo más consumo proyectado durante el lead time del proveedor.
+- Cantidad a pedir: cubrir al menos 30 días de demanda proyectada más 20% de buffer de seguridad.
+- Pedidos sobre $5.000.000 CLP requieren aprobación del gerente de operaciones.
+- Categorías prioritarias en temporada alta (noviembre-enero): Electrónica y Hogar sobre Vestuario y Ferretería.
+
+## PROVEEDORES
+
+- TechDistrib Ltda.: proveedor de electrónica. Contacto: ventas@techdistrib.cl. Descuento por volumen desde 20 unidades: 5%.
+- Calefacción Sur S.A.: proveedor de calefacción. Contacto: pedidos@calefaccionsur.cl.
+- ElectroHogar Ltda.: proveedor de línea blanca. Contacto: comercial@electrohogar.cl.
+- TextilSur SpA: proveedor de vestuario. Contacto: ventas@textilsur.cl.
+- HerramientasPro: proveedor de ferretería. Contacto: info@herramientaspro.cl.

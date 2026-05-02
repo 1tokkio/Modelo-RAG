@@ -1,227 +1,175 @@
 """
-main.py
--------
-Agente principal de gestión de inventario — RetailSur S.A.
-Integra el pipeline RAG con el ERP simulado (Odoo mock).
-
-Modos de uso:
-  1. Interfaz de chat interactiva:     python main.py
-  2. Demo automático con casos reales: python main.py --demo
-  3. Reconstruir índice vectorial:     python main.py --rebuild
-
-Flujo del agente:
-  Usuario → consulta en lenguaje natural
-         → RAG recupera contexto relevante (ERP + externo)
-         → GPT-4o genera recomendación estructurada y trazable
-         → (Opcional) Agente crea orden de compra en ERP
+main.py — API FastAPI para el agente de inventario Retail S.A.
+Endpoints:
+  POST /consulta  →  consulta general de inventario
+  POST /alerta    →  análisis de SKU específico y alerta de reorden
+  POST /pedido    →  recomendación de orden de compra
 """
 
-import argparse
 import os
-import sys
-import json
-from datetime import datetime
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from openai import OpenAI
+from rag import get_retriever
 
-# Asegurar que los módulos del proyecto están en el path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+load_dotenv()
 
-from rag.pipeline import RetailSurRAGPipeline
-from erp.odoo_mock import OdooMockClient
-from rag.prompts import GENERAL_ALERT_PROMPT
+app = FastAPI(title="Retail S.A. — Agente de Inventario")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Cliente OpenAI apuntando a GitHub Models
+client = OpenAI(
+    base_url=os.getenv("OPENAI_BASE_URL"),
+    api_key=os.getenv("GITHUB_TOKEN"),
+)
+
+retriever = get_retriever()
 
 
-def print_banner():
-    print("""
-╔══════════════════════════════════════════════════════════╗
-║     RetailSur S.A. — Agente de Gestión de Inventario     ║
-║     Stack: LangChain · GPT-4o · ChromaDB · Odoo Mock     ║
-║     Proyecto ISY0101 — Ingeniería de Soluciones con IA    ║
-╚══════════════════════════════════════════════════════════╝
-    """)
+# ── Modelos de entrada ────────────────────────────────────────────────────────
+
+class Pregunta(BaseModel):
+    pregunta: str
+
+class AlertaSKU(BaseModel):
+    sku: str
+
+class SolicitudPedido(BaseModel):
+    sku: str
+    stock_actual: int
 
 
-def demo_mode(pipeline: RetailSurRAGPipeline, erp: OdooMockClient):
+# ── Utilidad: recuperar contexto RAG ─────────────────────────────────────────
+
+def recuperar_contexto(query: str) -> str:
+    docs = retriever.invoke(query)
+    return "\n\n".join(d.page_content for d in docs)
+
+
+# ── Endpoint 1: consulta general ─────────────────────────────────────────────
+
+@app.post("/consulta")
+def consulta_general(body: Pregunta):
     """
-    Ejecuta una secuencia de casos de uso representativos del proyecto.
-    Útil para demostrar el sistema al docente evaluador.
+    Consulta libre sobre el estado del inventario.
+    Ejemplo: 'qué productos tienen stock crítico'
     """
-    print("\n" + "="*60)
-    print("  MODO DEMO — CASOS DE USO REPRESENTATIVOS")
-    print("="*60)
+    contexto = recuperar_contexto(body.pregunta)
 
-    # --- Caso 1: Consulta general de alertas ---
-    print("\n[CASO 1] Revisión de alertas automáticas de reorden")
-    alerts = erp.get_reorder_alerts()
-    alerts_text = json.dumps(alerts, indent=2, ensure_ascii=False)
-
-    result = pipeline.query(
-        f"El sistema detectó las siguientes alertas de reorden:\n{alerts_text}\n"
-        "Genera un informe ejecutivo con prioridades de compra considerando el contexto externo."
+    respuesta = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0.1,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres un asistente especializado en gestión de inventario para Retail S.A. "
+                    "Responde SOLO con información del contexto provisto. "
+                    "Si no tienes datos suficientes, indícalo. "
+                    "Sé directo y usa lenguaje claro para el jefe de compras."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Contexto:\n{contexto}\n\nPregunta: {body.pregunta}"
+            }
+        ]
     )
 
-    # --- Caso 2: Análisis de SKU específico con contexto externo ---
-    print("\n[CASO 2] Análisis SKU ELEC-001 (Smart TV) con contexto Cyber Monday")
-    result2 = pipeline.query(
-        "Analiza el SKU ELEC-001 (Smart TV 55 pulgadas). "
-        "Considera las tendencias de búsqueda actuales y el Cyber Monday próximo. "
-        "¿Cuántas unidades debo pedir y cuándo?"
-    )
-
-    # --- Caso 3: Impacto climático en categoría Hogar ---
-    print("\n[CASO 3] Impacto del clima en demanda de calefacción")
-    result3 = pipeline.query(
-        "Dado el pronóstico climático actual para Puerto Montt, "
-        "¿cómo afecta al inventario de la categoría Hogar? "
-        "¿Debo ajustar las órdenes de compra de estufas?"
-    )
-
-    # --- Caso 4: Crear orden de compra ---
-    print("\n[CASO 4] Creación de orden de compra para SKU ELEC-001")
-    order_result = erp.create_purchase_order(
-        sku="ELEC-001",
-        cantidad=45,
-        proveedor="TechDistrib Ltda.",
-        justificacion=(
-            "Stock actual: 8 unidades (bajo mínimo de 15). "
-            "Tendencia de búsqueda +120%. Cyber Monday en 2 semanas. "
-            "Recomendación del agente RAG basada en historial + contexto externo."
-        )
-    )
-    print(f"\nOrden creada en ERP:")
-    print(json.dumps(order_result, indent=2, ensure_ascii=False))
-
-    # --- Caso 5: Consulta de política de compras ---
-    print("\n[CASO 5] Consulta de política interna de aprobación")
-    result5 = pipeline.query(
-        "¿Qué productos requieren aprobación del gerente de operaciones? "
-        "¿Cuál es el proceso para pedidos de alto valor?"
-    )
-
-    print("\n" + "="*60)
-    print("  DEMO COMPLETADO")
-    print(f"  Órdenes de compra generadas: {len(erp.get_purchase_orders())}")
-    print("="*60)
+    return {"respuesta": respuesta.choices[0].message.content}
 
 
-def interactive_mode(pipeline: RetailSurRAGPipeline, erp: OdooMockClient):
+# ── Endpoint 2: alerta de reorden por SKU ────────────────────────────────────
+
+@app.post("/alerta")
+def alerta_reorden(body: AlertaSKU):
     """
-    Interfaz de chat interactiva en terminal.
-    Comandos especiales:
-      /alertas  → Muestra alertas automáticas de reorden
-      /erp      → Muestra resumen del inventario actual
-      /pedido   → Crea una orden de compra manualmente
-      /salir    → Termina la sesión
+    Analiza el estado de un SKU específico y determina si requiere reabastecimiento.
+    Ejemplo: {"sku": "ELEC-001"}
     """
-    print("\n[Chat iniciado] Escribe tu consulta o usa un comando especial.")
-    print("Comandos: /alertas  /erp  /pedido  /salir\n")
+    contexto = recuperar_contexto(f"inventario stock ventas {body.sku}")
 
-    while True:
-        try:
-            user_input = input("🏪 RetailSur > ").strip()
-        except (KeyboardInterrupt, EOFError):
-            print("\n[Sesión terminada]")
-            break
-
-        if not user_input:
-            continue
-
-        # Comandos especiales
-        if user_input.lower() == "/salir":
-            print("[Sesión terminada]")
-            break
-
-        elif user_input.lower() == "/alertas":
-            alerts = erp.get_reorder_alerts()
-            if not alerts:
-                print("✅ No hay alertas de reorden activas.")
-            else:
-                print(f"\n⚠️  {len(alerts)} alertas detectadas:\n")
-                for a in alerts:
-                    icon = "🔴" if a["urgencia"] == "CRÍTICA" else "🟡"
-                    print(f"  {icon} {a['sku']} | {a['nombre']}")
-                    print(f"     Stock: {a['stock_actual']} | Sugerido pedir: {a['cantidad_sugerida_pedido']} | "
-                          f"Costo: ${a['costo_total_estimado_clp']:,} CLP")
-            print()
-
-        elif user_input.lower() == "/erp":
-            inventory = erp.get_inventory()
-            print("\n📦 Inventario actual:\n")
-            for item in inventory:
-                print(f"  {item['sku']} | Stock: {item['stock_actual']} | "
-                      f"Mínimo: {item['stock_minimo']} | Lead time: {item['lead_time_dias']}d")
-            print()
-
-        elif user_input.lower() == "/pedido":
-            print("Crear orden de compra:")
-            sku = input("  SKU: ").strip().upper()
-            try:
-                cantidad = int(input("  Cantidad: ").strip())
-            except ValueError:
-                print("  Error: cantidad debe ser un número entero")
-                continue
-            inv = next((i for i in erp.get_inventory() if i["sku"] == sku), None)
-            if not inv:
-                print(f"  Error: SKU {sku} no encontrado")
-                continue
-            result = erp.create_purchase_order(
-                sku=sku,
-                cantidad=cantidad,
-                proveedor=inv["proveedor"],
-                justificacion="Creada manualmente desde interfaz de agente"
-            )
-            if result.get("success"):
-                order = result["order"]
-                print(f"\n  ✅ Orden {order['id']} creada")
-                print(f"     Entrega estimada: {order['fecha_entrega_estimada']}")
-                print(f"     Total: ${order['total_clp']:,} CLP")
-                if order["requiere_aprobacion"]:
-                    print("     ⚠️  REQUIERE APROBACIÓN DEL GERENTE")
-            print()
-
-        else:
-            # Consulta normal al agente RAG
-            print()
-            pipeline.query(user_input)
-
-
-def main():
-    load_dotenv()
-
-    parser = argparse.ArgumentParser(
-        description="Agente de gestión de inventario RetailSur S.A."
+    respuesta = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0.1,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres un asistente de inventario para Retail S.A. "
+                    "Analiza el SKU solicitado usando el contexto y responde en este formato:\n"
+                    "ESTADO: [CRÍTICO / ALERTA / NORMAL]\n"
+                    "ANÁLISIS: [resumen de stock actual vs mínimo y tendencia de ventas]\n"
+                    "ACCIÓN: [qué se debe hacer y cuándo]\n"
+                    "FUENTE: [qué datos usaste para esta conclusión]"
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Contexto:\n{contexto}\n\nAnaliza el SKU: {body.sku}"
+            }
+        ]
     )
-    parser.add_argument("--demo", action="store_true",
-                        help="Ejecutar modo demo con casos de uso predefinidos")
-    parser.add_argument("--rebuild", action="store_true",
-                        help="Reconstruir el índice vectorial ChromaDB desde cero")
-    args = parser.parse_args()
 
-    print_banner()
-
-    # Verificar API key
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("❌ Error: OPENAI_API_KEY no configurada.")
-        print("   Crea un archivo .env con: OPENAI_API_KEY=sk-...")
-        sys.exit(1)
-
-    # Inicializar ERP mock
-    print("[Init] Conectando al ERP (modo simulación)...")
-    erp = OdooMockClient()
-
-    # Inicializar pipeline RAG
-    print("[Init] Inicializando pipeline RAG...")
-    pipeline = RetailSurRAGPipeline(openai_api_key=api_key)
-    pipeline.build(force_rebuild=args.rebuild)
-
-    print(f"\n✅ Sistema listo | {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-
-    if args.demo:
-        demo_mode(pipeline, erp)
-    else:
-        interactive_mode(pipeline, erp)
+    return {
+        "sku": body.sku,
+        "analisis": respuesta.choices[0].message.content
+    }
 
 
-if __name__ == "__main__":
-    main()
+# ── Endpoint 3: recomendación de pedido ──────────────────────────────────────
+
+@app.post("/pedido")
+def recomendar_pedido(body: SolicitudPedido):
+    """
+    Genera una recomendación de orden de compra para un SKU dado el stock actual.
+    Ejemplo: {"sku": "ELEC-001", "stock_actual": 8}
+    """
+    contexto = recuperar_contexto(
+        f"pedido reorden proveedor lead time {body.sku} demanda ventas"
+    )
+
+    respuesta = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0.1,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres un asistente de compras para Retail S.A. "
+                    "Calcula la cantidad a pedir usando la política interna: "
+                    "30 días de demanda proyectada + 20% buffer de seguridad − stock actual. "
+                    "Responde en este formato:\n"
+                    "CANTIDAD SUGERIDA: [número] unidades\n"
+                    "PROVEEDOR: [nombre]\n"
+                    "FECHA LÍMITE DE PEDIDO: [considerando lead time]\n"
+                    "COSTO ESTIMADO: [en CLP]\n"
+                    "REQUIERE APROBACIÓN: [Sí / No — pedidos sobre $5.000.000 CLP sí]\n"
+                    "JUSTIFICACIÓN: [basada en datos del contexto]"
+                )
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Contexto:\n{contexto}\n\n"
+                    f"SKU: {body.sku}\n"
+                    f"Stock actual: {body.stock_actual} unidades\n"
+                    f"Genera la recomendación de pedido."
+                )
+            }
+        ]
+    )
+
+    return {
+        "sku": body.sku,
+        "stock_actual": body.stock_actual,
+        "recomendacion": respuesta.choices[0].message.content
+    }

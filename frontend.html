@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retail S.A. — Agente de Inventario</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; color: #222; }
+
+    header {
+      background: #1a1a1a;
+      color: white;
+      padding: 18px 32px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+    header span { color: #aaa; font-weight: normal; font-size: 0.9rem; margin-left: 12px; }
+
+    .container { max-width: 860px; margin: 32px auto; padding: 0 16px; }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      color: #111;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card p.desc { font-size: 0.85rem; color: #666; margin-bottom: 16px; }
+
+    label { display: block; font-size: 0.85rem; color: #444; margin-bottom: 4px; }
+    input, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+      font-family: Arial, sans-serif;
+    }
+    textarea { resize: vertical; min-height: 70px; }
+
+    button {
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { background: #333; }
+    button:disabled { background: #999; cursor: not-allowed; }
+
+    .resultado {
+      margin-top: 14px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 14px;
+      font-size: 0.88rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      display: none;
+    }
+    .resultado.visible { display: block; }
+    .tag {
+      display: inline-block;
+      background: #222;
+      color: white;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    .error { color: #c00; }
+  </style>
+</head>
+<body>
+
+<header>
+  Retail S.A. — Agente de Gestión de Inventario
+  <span>ISY0101 · DuocUC · 2025</span>
+</header>
+
+<div class="container">
+
+  <!-- CONSULTA GENERAL -->
+  <div class="card">
+    <h2>Consulta General</h2>
+    <p class="desc">Pregunta libre sobre el estado del inventario, ventas o contexto de mercado.</p>
+    <label>Pregunta</label>
+    <textarea id="q-consulta" placeholder="Ej: ¿Qué productos tienen stock crítico?"></textarea>
+    <button onclick="consultar()">Consultar</button>
+    <div class="resultado" id="r-consulta"></div>
+  </div>
+
+  <!-- ALERTA SKU -->
+  <div class="card">
+    <h2>Alerta de Reorden por SKU</h2>
+    <p class="desc">Analiza el estado de un producto específico y determina si requiere reabastecimiento.</p>
+    <label>Código SKU</label>
+    <input id="q-sku-alerta" placeholder="Ej: ELEC-001" />
+    <button onclick="alerta()">Analizar SKU</button>
+    <div class="resultado" id="r-alerta"></div>
+  </div>
+
+  <!-- PEDIDO -->
+  <div class="card">
+    <h2>Recomendación de Pedido</h2>
+    <p class="desc">Genera una recomendación de orden de compra para un SKU dado el stock actual.</p>
+    <label>Código SKU</label>
+    <input id="q-sku-pedido" placeholder="Ej: ELEC-001" />
+    <label>Stock actual (unidades)</label>
+    <input id="q-stock" type="number" placeholder="Ej: 8" />
+    <button onclick="pedido()">Generar Recomendación</button>
+    <div class="resultado" id="r-pedido"></div>
+  </div>
+
+</div>
+
+<script>
+  const BASE = "http://127.0.0.1:8000";
+
+  async function llamar(endpoint, body, btnEl, resultEl) {
+    btnEl.disabled = true;
+    resultEl.className = "resultado visible";
+    resultEl.innerHTML = "Consultando...";
+    try {
+      const res = await fetch(`${BASE}/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      const texto = data.respuesta || data.analisis || data.recomendacion || JSON.stringify(data, null, 2);
+      resultEl.innerHTML = `<span class="tag">${endpoint.toUpperCase()}</span>\n${texto}`;
+    } catch (e) {
+      resultEl.innerHTML = `<span class="error">Error: ${e.message}. Verifica que el servidor esté corriendo.</span>`;
+    } finally {
+      btnEl.disabled = false;
+    }
+  }
+
+  function consultar() {
+    const btn = document.querySelector('.card:nth-child(1) button');
+    llamar("consulta", { pregunta: document.getElementById("q-consulta").value }, btn, document.getElementById("r-consulta"));
+  }
+
+  function alerta() {
+    const btn = document.querySelector('.card:nth-child(2) button');
+    llamar("alerta", { sku: document.getElementById("q-sku-alerta").value }, btn, document.getElementById("r-alerta"));
+  }
+
+  function pedido() {
+    const btn = document.querySelector('.card:nth-child(3) button');
+    llamar("pedido", {
+      sku: document.getElementById("q-sku-pedido").value,
+      stock_actual: parseInt(document.getElementById("q-stock").value) || 0
+    }, btn, document.getElementById("r-pedido"));
+  }
+</script>
+
+</body>
+</html>
