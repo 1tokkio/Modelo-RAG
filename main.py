@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from openai import OpenAI
 from rag import get_retriever
+from memory import registrar, obtener_historial
 
 load_dotenv()
 
@@ -62,6 +63,11 @@ def frontend():
     return FileResponse("frontend.html")
 
 
+@app.get("/historial")
+def ver_historial():
+    return obtener_historial()
+
+
 @app.post("/consulta")
 def consulta_general(body: Pregunta):
     """
@@ -90,7 +96,9 @@ def consulta_general(body: Pregunta):
         ]
     )
 
-    return {"respuesta": respuesta.choices[0].message.content}
+    resultado = {"respuesta": respuesta.choices[0].message.content}
+    registrar("consulta", {"pregunta": body.pregunta}, resultado)
+    return resultado
 
 
 # ── Endpoint 2: alerta de reorden por SKU ────────────────────────────────────
@@ -125,10 +133,9 @@ def alerta_reorden(body: AlertaSKU):
         ]
     )
 
-    return {
-        "sku": body.sku,
-        "analisis": respuesta.choices[0].message.content
-    }
+    resultado = {"sku": body.sku, "analisis": respuesta.choices[0].message.content}
+    registrar("alerta", {"sku": body.sku}, resultado)
+    return resultado
 
 
 # ── Endpoint 3: recomendación de pedido ──────────────────────────────────────
@@ -174,8 +181,10 @@ def recomendar_pedido(body: SolicitudPedido):
         ]
     )
 
-    return {
+    resultado = {
         "sku": body.sku,
         "stock_actual": body.stock_actual,
-        "recomendacion": respuesta.choices[0].message.content
+        "recomendacion": respuesta.choices[0].message.content,
     }
+    registrar("pedido", {"sku": body.sku, "stock_actual": body.stock_actual}, resultado)
+    return resultado
