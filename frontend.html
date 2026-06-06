@@ -1,139 +1,485 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Retail S.A. — Agente de Inventario</title>
   <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #222637;
+      --border:    #2e3347;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --accent:    #3b82f6;
+      --accent-h:  #2563eb;
+      --blue-bg:   rgba(59,130,246,0.12);
+      --amber-bg:  rgba(245,158,11,0.12);
+      --amber:     #f59e0b;
+      --green-bg:  rgba(34,197,94,0.12);
+      --green:     #22c55e;
+      --red:       #ef4444;
+      --sidebar:   #13151f;
+    }
+    [data-theme="light"] {
+      --bg:        #f1f5f9;
+      --surface:   #ffffff;
+      --surface2:  #f8fafc;
+      --border:    #e2e8f0;
+      --text:      #1e293b;
+      --muted:     #94a3b8;
+      --accent:    #3b82f6;
+      --accent-h:  #2563eb;
+      --blue-bg:   #dbeafe;
+      --amber-bg:  #fef3c7;
+      --green-bg:  #dcfce7;
+      --sidebar:   #1e293b;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f4f4f4; color: #222; }
 
-    header {
-      background: #1a1a1a;
-      color: white;
-      padding: 18px 32px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      letter-spacing: 0.5px;
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    header span { color: #aaa; font-weight: normal; font-size: 0.9rem; margin-left: 12px; }
 
-    .container { max-width: 860px; margin: 32px auto; padding: 0 16px; }
-
-    .card {
-      background: white;
-      border: 1px solid #ddd;
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 28px; height: 28px;
+      background: var(--accent);
       border-radius: 6px;
-      padding: 24px;
-      margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #fff;
     }
-    .card h2 {
-      font-size: 1rem;
-      color: #111;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .topbar h1 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.2px;
     }
-    .card p.desc { font-size: 0.85rem; color: #666; margin-bottom: 16px; }
+    .topbar-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      padding-left: 14px;
+      margin-left: 4px;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
 
-    label { display: block; font-size: 0.85rem; color: #444; margin-bottom: 4px; }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .status-label { font-size: 0.75rem; color: var(--muted); }
+
+    .theme-toggle {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      flex: 1;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 200px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    .sidebar-section {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 0 16px 8px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-item.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--blue-bg);
+    }
+    .nav-icon { font-size: 0.85rem; width: 16px; text-align: center; }
+    .nav-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      padding: 28px 32px;
+      max-width: 860px;
+    }
+
+    .page-title {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .page-title span { color: var(--text); font-weight: 500; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-top {
+      padding: 16px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-blue  { background: var(--blue-bg);  color: var(--accent); }
+    .badge-amber { background: var(--amber-bg);  color: var(--amber); }
+    .badge-green { background: var(--green-bg);  color: var(--green); }
+    .badge-muted { background: var(--surface2);  color: var(--muted); }
+
+    .card h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .card-body { padding: 14px 20px 20px; }
+    .card p.desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
+    }
     input, textarea {
       width: 100%;
-      padding: 9px 12px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.92rem;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.87rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface2);
       margin-bottom: 12px;
-      font-family: Arial, sans-serif;
+      transition: border-color 0.15s, background 0.15s;
+      outline: none;
     }
-    textarea { resize: vertical; min-height: 70px; }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.6; }
+    textarea { resize: vertical; min-height: 72px; }
 
-    button {
-      background: #1a1a1a;
-      color: white;
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
       border: none;
-      padding: 9px 22px;
-      border-radius: 4px;
+      padding: 8px 18px;
+      border-radius: 7px;
+      font-size: 0.83rem;
+      font-family: inherit;
+      font-weight: 500;
       cursor: pointer;
-      font-size: 0.9rem;
+      transition: background 0.15s;
     }
-    button:hover { background: #333; }
-    button:disabled { background: #999; cursor: not-allowed; }
+    .btn-primary:hover { background: var(--accent-h); }
+    .btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
 
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 7px 16px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ── LOADER ── */
+    .loader {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 7px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESULTADO ── */
     .resultado {
-      margin-top: 14px;
-      background: #f9f9f9;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      padding: 14px;
-      font-size: 0.88rem;
-      white-space: pre-wrap;
-      line-height: 1.6;
       display: none;
+      margin-top: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 14px 16px;
+      font-size: 0.84rem;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
     }
     .resultado.visible { display: block; }
-    .tag {
+    .resultado .tag {
       display: inline-block;
-      background: #222;
-      color: white;
-      font-size: 0.72rem;
+      font-size: 0.65rem;
+      font-weight: 700;
       padding: 2px 8px;
-      border-radius: 3px;
-      margin-bottom: 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-    .error { color: #c00; }
+    .error { color: var(--red); font-size: 0.83rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--border);
+      padding: 20px 0;
+      border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
 
-<header>
-  Retail S.A. — Agente de Gestión de Inventario
-  <span>ISY0101 · DuocUC · 2025</span>
-</header>
-
-<div class="container">
-
-  <!-- CONSULTA GENERAL -->
-  <div class="card">
-    <h2>Consulta General</h2>
-    <p class="desc">Pregunta libre sobre el estado del inventario, ventas o contexto de mercado.</p>
-    <label>Pregunta</label>
-    <textarea id="q-consulta" placeholder="Ej: ¿Qué productos tienen stock crítico?"></textarea>
-    <button onclick="consultar()">Consultar</button>
-    <div class="resultado" id="r-consulta"></div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">RS</div>
+    <h1>Retail S.A. — Gestión de Inventario</h1>
+    <span class="topbar-meta">ISY0101 · DuocUC · 2025</span>
   </div>
-
-  <!-- ALERTA SKU -->
-  <div class="card">
-    <h2>Alerta de Reorden por SKU</h2>
-    <p class="desc">Analiza el estado de un producto específico y determina si requiere reabastecimiento.</p>
-    <label>Código SKU</label>
-    <input id="q-sku-alerta" placeholder="Ej: ELEC-001" />
-    <button onclick="alerta()">Analizar SKU</button>
-    <div class="resultado" id="r-alerta"></div>
+  <div class="topbar-right">
+    <div class="status-dot"></div>
+    <span class="status-label">Agente activo</span>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ Modo claro</button>
   </div>
-
-  <!-- PEDIDO -->
-  <div class="card">
-    <h2>Recomendación de Pedido</h2>
-    <p class="desc">Genera una recomendación de orden de compra para un SKU dado el stock actual.</p>
-    <label>Código SKU</label>
-    <input id="q-sku-pedido" placeholder="Ej: ELEC-001" />
-    <label>Stock actual (unidades)</label>
-    <input id="q-stock" type="number" placeholder="Ej: 8" />
-    <button onclick="pedido()">Generar Recomendación</button>
-    <div class="resultado" id="r-pedido"></div>
-  </div>
-
 </div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Módulos</div>
+    <div class="nav-item active" onclick="scrollTo('s-consulta')">
+      <span class="nav-icon">🔍</span> Consulta
+    </div>
+    <div class="nav-item" onclick="scrollTo('s-alerta')">
+      <span class="nav-icon">⚠️</span> Alertas
+    </div>
+    <div class="nav-item" onclick="scrollTo('s-pedido')">
+      <span class="nav-icon">📦</span> Pedidos
+    </div>
+    <hr class="nav-divider" />
+    <div class="sidebar-section">Sistema</div>
+    <div class="nav-item" onclick="historial()">
+      <span class="nav-icon">📋</span> Historial
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="page-title">
+      Agente RAG · <span>Panel de Control</span>
+    </div>
+
+    <!-- CONSULTA GENERAL -->
+    <div class="card" id="s-consulta">
+      <div class="card-top">
+        <div class="card-title-row">
+          <span class="badge badge-blue">Consulta</span>
+          <h2>Consulta General</h2>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="desc">Pregunta libre sobre el estado del inventario, ventas o contexto de mercado. El agente selecciona la herramienta adecuada automáticamente.</p>
+        <label>Pregunta</label>
+        <textarea id="q-consulta" placeholder="Ej: ¿Qué productos tienen stock crítico?"></textarea>
+        <button class="btn-primary" id="btn-consulta" onclick="consultar()">Consultar</button>
+        <div class="resultado" id="r-consulta"></div>
+      </div>
+    </div>
+
+    <!-- ALERTA SKU -->
+    <div class="card" id="s-alerta">
+      <div class="card-top">
+        <div class="card-title-row">
+          <span class="badge badge-amber">Alerta</span>
+          <h2>Alerta de Reorden por SKU</h2>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="desc">Analiza el estado de un producto específico y determina si requiere reabastecimiento. Registra la alerta en memoria si el estado es crítico.</p>
+        <label>Código SKU</label>
+        <input id="q-sku-alerta" placeholder="Ej: ELEC-001" />
+        <button class="btn-primary" id="btn-alerta" onclick="alerta()">Analizar SKU</button>
+        <div class="resultado" id="r-alerta"></div>
+      </div>
+    </div>
+
+    <!-- PEDIDO -->
+    <div class="card" id="s-pedido">
+      <div class="card-top">
+        <div class="card-title-row">
+          <span class="badge badge-green">Pedido</span>
+          <h2>Recomendación de Pedido</h2>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="desc">Genera una recomendación de orden de compra. Política: 30 días de demanda × 1.2 − stock actual. Pedidos sobre $5.000.000 CLP requieren aprobación.</p>
+        <div class="row">
+          <div>
+            <label>Código SKU</label>
+            <input id="q-sku-pedido" placeholder="Ej: ELEC-001" />
+          </div>
+          <div>
+            <label>Stock actual (unidades)</label>
+            <input id="q-stock" type="number" placeholder="Ej: 8" />
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-pedido" onclick="pedido()">Generar Recomendación</button>
+        <div class="resultado" id="r-pedido"></div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="card" id="s-historial" style="display:none">
+      <div class="card-top">
+        <div class="card-title-row">
+          <span class="badge badge-muted">Sistema</span>
+          <h2>Historial de Sesión</h2>
+        </div>
+        <button class="btn-ghost" onclick="cerrarHistorial()">Cerrar</button>
+      </div>
+      <div class="card-body">
+        <div class="resultado visible" id="r-historial"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Agente RAG · LangChain + ChromaDB + GitHub Models · gpt-4o-mini</footer>
 
 <script>
   const BASE = "http://127.0.0.1:8000";
 
-  async function llamar(endpoint, body, btnEl, resultEl) {
-    btnEl.disabled = true;
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    event.currentTarget.textContent = dark ? '🌙 Modo oscuro' : '☀ Modo claro';
+  }
+
+  function setLoading(btn, loading) {
+    if (loading) {
+      btn.disabled = true;
+      btn.dataset.original = btn.innerHTML;
+      btn.innerHTML = '<span class="loader"></span>Procesando...';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.original;
+    }
+  }
+
+  async function llamar(endpoint, body, btnId, resultId, badgeClass, badgeLabel) {
+    const btn = document.getElementById(btnId);
+    const resultEl = document.getElementById(resultId);
+    setLoading(btn, true);
     resultEl.className = "resultado visible";
-    resultEl.innerHTML = "Consultando...";
+    resultEl.innerHTML = "Consultando al agente...";
     try {
       const res = await fetch(`${BASE}/${endpoint}`, {
         method: "POST",
@@ -142,30 +488,48 @@
       });
       const data = await res.json();
       const texto = data.respuesta || data.analisis || data.recomendacion || JSON.stringify(data, null, 2);
-      resultEl.innerHTML = `<span class="tag">${endpoint.toUpperCase()}</span>\n${texto}`;
+      resultEl.innerHTML = `<span class="tag ${badgeClass}">${badgeLabel}</span>\n${texto}`;
     } catch (e) {
       resultEl.innerHTML = `<span class="error">Error: ${e.message}. Verifica que el servidor esté corriendo.</span>`;
     } finally {
-      btnEl.disabled = false;
+      setLoading(btn, false);
     }
   }
 
   function consultar() {
-    const btn = document.querySelector('.card:nth-child(1) button');
-    llamar("consulta", { pregunta: document.getElementById("q-consulta").value }, btn, document.getElementById("r-consulta"));
+    llamar("consulta", { pregunta: document.getElementById("q-consulta").value },
+      "btn-consulta", "r-consulta", "badge-blue", "Respuesta");
   }
 
   function alerta() {
-    const btn = document.querySelector('.card:nth-child(2) button');
-    llamar("alerta", { sku: document.getElementById("q-sku-alerta").value }, btn, document.getElementById("r-alerta"));
+    llamar("alerta", { sku: document.getElementById("q-sku-alerta").value },
+      "btn-alerta", "r-alerta", "badge-amber", "Análisis");
   }
 
   function pedido() {
-    const btn = document.querySelector('.card:nth-child(3) button');
     llamar("pedido", {
       sku: document.getElementById("q-sku-pedido").value,
       stock_actual: parseInt(document.getElementById("q-stock").value) || 0
-    }, btn, document.getElementById("r-pedido"));
+    }, "btn-pedido", "r-pedido", "badge-green", "Recomendación");
+  }
+
+  async function historial() {
+    const card = document.getElementById("s-historial");
+    const el = document.getElementById("r-historial");
+    card.style.display = "block";
+    el.textContent = "Cargando historial...";
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const res = await fetch(`${BASE}/historial`);
+      const data = await res.json();
+      el.textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      el.innerHTML = `<span class="error">Error: ${e.message}</span>`;
+    }
+  }
+
+  function cerrarHistorial() {
+    document.getElementById("s-historial").style.display = "none";
   }
 </script>
 
