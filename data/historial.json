@@ -1,0 +1,127 @@
+[
+  {
+    "fecha": "2026-06-06T11:31:04",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "que producto se venderia mas en esta temporada del año\n"
+    },
+    "salida": {
+      "respuesta": "En esta temporada del año, se proyecta una alta demanda en productos electrónicos, especialmente durante el Cyber Monday y Navidad. Basado en el historial de ventas, el producto que se vendería más es el SKU ELEC-001, que muestra una tendencia creciente con 130 unidades vendidas en diciembre. Además, las búsquedas de \"Smart TV oferta\" han aumentado un 120%, lo que refuerza la expectativa de alta demanda en electrónica."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:32:52",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "que productos han tenido mas venta en estos ultimos meses\n\n"
+    },
+    "salida": {
+      "respuesta": "Los productos con más ventas en los últimos meses son:\n\n1. **ELEC-001 (Smart TV 55 pulgadas)**: \n   - Octubre: 45 unidades\n   - Noviembre: 62 unidades\n   - Diciembre: 130 unidades\n   - Tendencia: CRECIENTE\n\n2. **ELEC-002 (Notebook Core i5)**: \n   - Octubre: 28 unidades\n   - Noviembre: 35 unidades\n   - Diciembre: 89 unidades\n   - Tendencia: CRECIENTE\n\nEstos dos productos han mostrado un aumento significativo en sus ventas, especialmente el ELEC-001 en diciembre."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:33:17",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "considera que estamosen junio\n\n"
+    },
+    "salida": {
+      "respuesta": "No tengo datos suficientes para responder a tu pregunta, ya que el contexto proporcionado se refiere a los meses de octubre, noviembre y diciembre, y no incluye información específica sobre junio."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:33:51",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "que productos creen se venderian mas ahora\n\n"
+    },
+    "salida": {
+      "respuesta": "Los productos que se venderían más ahora, basándonos en las tendencias de mercado y el historial de ventas, son:\n\n1. **Smart TV (ELEC-001)**: Con un aumento del 120% en las búsquedas de \"Smart TV oferta\" en la región Los Lagos y una tendencia creciente en ventas (130 unidades en diciembre), se espera una alta demanda.\n\n2. **Notebook (ELEC-002)**: Las búsquedas de \"Notebook estudiante\" han aumentado un 95%, y también muestra una tendencia creciente en ventas (89 unidades en diciembre).\n\n3. **Estufa pellet (HOGAR-001)**: Aunque las búsquedas han disminuido un 30%, su tendencia de ventas es decreciente debido al fin de la temporada de invierno, por lo que no se espera un aumento en su demanda.\n\n4. **Generador de luz**: Con un aumento del 60% en las búsquedas debido a cortes eléctricos en la zona rural, podría haber un incremento en la demanda, aunque no hay datos de ventas previas para este producto.\n\nRecomendaría priorizar la compra de Smart TVs y Notebooks para satisfacer la demanda actual."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:34:50",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "hoy es 6 de junio, considerando esto que productos crees que tengan mayor demanda\n"
+    },
+    "salida": {
+      "respuesta": "No tengo datos suficientes para determinar la demanda de productos en junio, ya que el contexto proporcionado se centra en los meses de octubre a diciembre y eventos específicos como Cyber Monday y Navidad. Sin embargo, basándome en las tendencias de ventas y búsquedas, se puede inferir que productos de electrónica, como Smart TVs y notebooks, podrían seguir siendo relevantes, pero no hay información específica para junio."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:35:39",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "en junio estamos en invierno por lo que codigos de caleffacion se venderan mas, que codigosde calefaccion crees nuestra mejor apuesta\n"
+    },
+    "salida": {
+      "respuesta": "Dado el contexto actual y las tendencias de mercado, la mejor apuesta en calefacción sería el SKU HOGAR-002: Refrigerador 350L No Frost, ya que muestra una tendencia creciente en ventas. Sin embargo, el SKU HOGAR-001: Estufa a Pellet 15kW está en una tendencia decreciente debido al fin de la temporada de invierno, lo que sugiere que no sería una buena inversión en este momento.\n\nRecomiendo enfocarse en aumentar el stock del refrigerador, ya que la demanda está en aumento y el clima frío puede impulsar las ventas de productos de hogar en general."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:35:56",
+    "tipo": "alerta",
+    "entrada": {
+      "sku": "HOGAR-002"
+    },
+    "salida": {
+      "sku": "HOGAR-002",
+      "analisis": "ESTADO: NORMAL  \nANÁLISIS: El stock actual de HOGAR-002 (Refrigerador) es de 11 unidades, que está por encima del mínimo requerido de 8 unidades. La tendencia de ventas muestra un aumento en los últimos meses (19 en octubre, 22 en noviembre y 51 en diciembre), lo que indica un interés creciente en este producto.  \nACCIÓN: No se requiere acción inmediata, pero se debe monitorear el stock y las ventas en los próximos meses. Si la tendencia de ventas continúa en aumento, considerar realizar un pedido adicional antes de que el stock alcance el mínimo.  \nFUENTE: Datos de inventario actual y análisis de historial de ventas."
+    }
+  },
+  {
+    "fecha": "2026-06-06T11:36:12",
+    "tipo": "pedido",
+    "entrada": {
+      "sku": "HOGAR-002:",
+      "stock_actual": 11
+    },
+    "salida": {
+      "sku": "HOGAR-002:",
+      "stock_actual": 11,
+      "recomendacion": "CANTIDAD SUGERIDA: 34 unidades  \nPROVEEDOR: ElectroHogar Ltda.  \nFECHA LÍMITE DE PEDIDO: 18 días (considerando lead time)  \nCOSTO ESTIMADO: $15.366.000 CLP  \nREQUIERE APROBACIÓN: Sí  \nJUSTIFICACIÓN: La demanda proyectada para 30 días es de aproximadamente 51 unidades (promedio de ventas de los últimos meses). Se añade un 20% de buffer de seguridad, lo que resulta en un total de 61 unidades. Dado que el stock actual es de 11 unidades, se sugiere pedir 50 unidades para cubrir la demanda y el buffer. Sin embargo, el costo total excede los $5.000.000 CLP, por lo que se requiere aprobación."
+    }
+  },
+  {
+    "fecha": "2026-06-06T13:28:04",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "que producto crees que se podria escalar"
+    },
+    "salida": {
+      "respuesta": "Basado en las tendencias de mercado, el producto que se podría escalar es el **Smart TV 55 pulgadas (SKU ELEC-001)**, ya que ha tenido un aumento del 120% en búsquedas en la región de Los Lagos. Esto indica una alta demanda que podría traducirse en un incremento en las ventas. \n\nAdemás, el stock mínimo es de 15 unidades, por lo que sería recomendable evaluar el inventario actual y considerar un nuevo pedido para satisfacer esta demanda creciente."
+    }
+  },
+  {
+    "fecha": "2026-06-06T13:28:42",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "que sku esta con problemas de ventas "
+    },
+    "salida": {
+      "respuesta": "Los SKU con problemas de ventas son:\n\n- HOGAR-001 (Estufa Pellet): Tendencia decreciente, con ventas de 92, 78 y 41 unidades en los últimos tres meses.\n- VEST-001 (Parka): Tendencia decreciente, con ventas de 67, 55 y 30 unidades en los últimos tres meses.\n- FERR-001 (Generador): Tendencia variable, con ventas de 14, 18 y 12 unidades en los últimos tres meses. \n\nEstos productos presentan una disminución en las ventas o una tendencia inestable."
+    }
+  },
+  {
+    "fecha": "2026-06-06T13:29:20",
+    "tipo": "consulta",
+    "entrada": {
+      "pregunta": "y estos sku cuanto deberian vender en promedio"
+    },
+    "salida": {
+      "respuesta": "Para calcular el promedio de ventas de los SKU en los últimos 3 meses, sumamos las ventas de cada SKU y dividimos por 3 (el número de meses).\n\n1. **ELEC-001 (Smart TV)**: (45 + 62 + 130) / 3 = 79 unidades.\n2. **ELEC-002 (Notebook)**: (28 + 35 + 89) / 3 = 50.67 unidades (aproximadamente 51 unidades).\n3. **HOGAR-001 (Estufa Pellet)**: (92 + 78 + 41) / 3 = 70.33 unidades (aproximadamente 70 unidades).\n4. **HOGAR-002 (Refrigerador)**: (19 + 22 + 51) / 3 = 30.67 unidades (aproximadamente 31 unidades).\n5. **VEST-001 (Parka)**: (67 + 55 + 30) / 3 = 50.67 unidades (aproximadamente 51 unidades).\n6. **FERR-001 (Generador)**: (14 + 18 + 12) / 3 = 14.67 unidades (aproximadamente 15 unidades).\n\n**Promedio de ventas por SKU:**\n- ELEC-001: 79 unidades.\n- ELEC-002: 51 unidades.\n- HOGAR-001: 70 unidades.\n- HOGAR-002: 31 unidades.\n- VEST-001: 51 unidades.\n- FERR-001: 15 unidades."
+    }
+  },
+  {
+    "fecha": "2026-06-06T13:32:44",
+    "tipo": "alerta",
+    "entrada": {
+      "sku": "ELEC-001"
+    },
+    "salida": {
+      "sku": "ELEC-001",
+      "analisis": "ESTADO: CRÍTICO  \nANÁLISIS: El stock actual de 8 unidades está por debajo del mínimo requerido de 15 unidades. Las ventas han mostrado una tendencia creciente, con 130 unidades vendidas en diciembre, lo que indica una alta demanda y la necesidad urgente de reabastecimiento.  \nACCIÓN: Se debe realizar un pedido inmediato al proveedor TechDistrib Ltda. para reabastecer al menos 15 unidades, considerando el lead time de 12 días. Esto debe hacerse a la brevedad para evitar desabastecimiento.  \nFUENTE: Datos de inventario actual y el historial de ventas de los últimos 3 meses."
+    }
+  }
+]
