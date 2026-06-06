@@ -346,13 +346,13 @@
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="sidebar-section">Módulos</div>
-    <div class="nav-item active" onclick="scrollTo('s-consulta')">
+    <div class="nav-item active" onclick="navegarA('s-consulta')">
       <span class="nav-icon">🔍</span> Consulta
     </div>
-    <div class="nav-item" onclick="scrollTo('s-alerta')">
+    <div class="nav-item" onclick="navegarA('s-alerta')">
       <span class="nav-icon">⚠️</span> Alertas
     </div>
-    <div class="nav-item" onclick="scrollTo('s-pedido')">
+    <div class="nav-item" onclick="navegarA('s-pedido')">
       <span class="nav-icon">📦</span> Pedidos
     </div>
     <hr class="nav-divider" />
@@ -450,7 +450,7 @@
 <script>
   const BASE = "http://127.0.0.1:8000";
 
-  function scrollTo(id) {
+  function navegarA(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     event.currentTarget.classList.add('active');
@@ -521,10 +521,14 @@
     card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     try {
       const res = await fetch(`${BASE}/historial`);
+      if (!res.ok) {
+        el.innerHTML = `<span class="error">El endpoint /historial no está disponible (${res.status}).</span>`;
+        return;
+      }
       const data = await res.json();
       el.textContent = JSON.stringify(data, null, 2);
     } catch (e) {
-      el.innerHTML = `<span class="error">Error: ${e.message}</span>`;
+      el.innerHTML = `<span class="error">Error al conectar con el servidor: ${e.message}</span>`;
     }
   }
 
