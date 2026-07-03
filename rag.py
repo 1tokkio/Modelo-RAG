@@ -1,8 +1,3 @@
-"""
-rag.py — Pipeline RAG para Retail S.A.
-Carga data/inventario.txt, genera embeddings y persiste en ChromaDB.
-"""
-
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
@@ -13,7 +8,8 @@ from langchain_chroma import Chroma
 load_dotenv()
 
 CHROMA_DIR = "./chroma_db"
-DATA_FILE  = "./data/inventario.txt"
+DATA_FILE = "./data/inventario.txt"
+
 
 def get_retriever():
     embeddings = OpenAIEmbeddings(
@@ -22,7 +18,6 @@ def get_retriever():
         openai_api_base=os.getenv("OPENAI_EMBEDDINGS_URL"),
     )
 
-    # Si ya existe el índice, cargarlo directamente
     if os.path.exists(CHROMA_DIR) and os.listdir(CHROMA_DIR):
         print("[RAG] Cargando índice existente...")
         vectorstore = Chroma(
@@ -32,14 +27,9 @@ def get_retriever():
     else:
         print("[RAG] Construyendo índice desde cero...")
         loader = TextLoader(DATA_FILE, encoding="utf-8")
-        docs   = loader.load()
-
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=500,
-            chunk_overlap=50,
-        )
+        docs = loader.load()
+        splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(docs)
-
         vectorstore = Chroma.from_documents(
             documents=chunks,
             embedding=embeddings,

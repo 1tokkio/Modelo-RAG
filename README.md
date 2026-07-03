@@ -1,64 +1,47 @@
-# Retail S.A. — Agente de Inventario con LLM y RAG
+# Retail S.A. — Agente de Inventario con RAG y Observabilidad
 
-Solución de soporte a decisiones en gestión de inventario, implementada con LangChain, FastAPI y GitHub Models.
+Agente de soporte a decisiones para gestión de inventario, con sistema completo de observabilidad: métricas, logs estructurados y dashboard visual.
 
-## Descripción
+## Arquitectura
 
-Sistema que recibe consultas sobre inventario, analiza el estado de productos por SKU y genera recomendaciones de pedido, usando un pipeline RAG sobre la base de conocimiento interna de la empresa.
-
-## Tecnologías
-
-- Python 3.10+
-- FastAPI — API REST
-- LangChain — orquestación del pipeline RAG
-- ChromaDB — base de datos vectorial
-- GitHub Models (Azure Inference API) — LLM y embeddings
-- GPT-4o-mini — generación de respuestas
-- text-embedding-3-small — embeddings semánticos
+```
+Usuario → FastAPI (main.py)
+               ↓
+         Pipeline RAG (rag.py)
+         ChromaDB + text-embedding-3-small
+               ↓
+         GPT-4o-mini (GitHub Models)
+               ↓
+         Observabilidad (observability.py) → metricas.json + agent_events.jsonl
+         Seguridad (security.py)           → validación, rate limit, sanitización
+```
 
 ## Estructura
 
 ```
-retailsa-rag/
-├── main.py              # API FastAPI con los 3 endpoints
-├── rag.py               # Pipeline RAG con ChromaDB
+├── main.py                      # API FastAPI — 5 endpoints
+├── rag.py                       # Pipeline RAG con ChromaDB
+├── observability.py             # Métricas, latencia y logs
+├── security.py                  # Validación, rate limiting y sanitización
+├── frontend.html                # UI con dashboard integrado
 ├── data/
-│   └── inventario.txt   # Base de conocimiento
-├── frontend.html        # Frontend para pruebas
-├── .env.example         # Plantilla de variables de entorno
-├── .gitignore
-└── README.md
+│   ├── inventario.txt           # Base de conocimiento
+│   ├── metricas.json            # Métricas acumuladas (auto-generado)
+│   └── agent_events.jsonl       # Log de eventos (auto-generado)
+├── .env.example
+└── requirements.txt
 ```
 
 ## Instalación
 
-**1. Clonar el repositorio**
-```bash
-git clone https://github.com/tu-usuario/retailsa-rag.git
-cd retailsa-rag
-```
-
-**2. Crear y activar entorno virtual**
 ```bash
 python -m venv venv
-
-# Windows
 venv\Scripts\activate
-
-# Mac/Linux
-source venv/bin/activate
-```
-
-**3. Instalar dependencias**
-```bash
 pip install -r requirements.txt
-```
-
-**4. Configurar variables de entorno**
-```bash
 cp .env.example .env
 ```
-Edita `.env` con tu token de GitHub Models:
+
+Variables requeridas en `.env`:
 ```
 OPENAI_BASE_URL="https://models.inference.ai.azure.com"
 OPENAI_EMBEDDINGS_URL="https://models.github.ai/inference"
@@ -71,53 +54,57 @@ GITHUB_TOKEN="tu_token_aqui"
 uvicorn main:app --reload
 ```
 
-La primera vez construye el índice vectorial en `chroma_db/`. Las siguientes veces lo carga desde disco.
+Servidor en `http://127.0.0.1:8000` · Swagger en `http://127.0.0.1:8000/docs`
 
-Servidor disponible en: `http://127.0.0.1:8000`
-
-## Pruebas
-
-**Opción 1 — Frontend visual**  
-Abre `frontend.html` en el navegador con el servidor corriendo.
-
-**Opción 2 — Swagger UI**  
-Abre `http://127.0.0.1:8000/docs`
-
-**Opción 3 — curl**
-```bash
-curl -X POST http://127.0.0.1:8000/consulta \
-  -H "Content-Type: application/json" \
-  -d '{"pregunta": "qué productos tienen stock crítico"}'
-
-curl -X POST http://127.0.0.1:8000/alerta \
-  -H "Content-Type: application/json" \
-  -d '{"sku": "ELEC-001"}'
-
-curl -X POST http://127.0.0.1:8000/pedido \
-  -H "Content-Type: application/json" \
-  -d '{"sku": "ELEC-001", "stock_actual": 8}'
-```
+La primera vez construye el índice vectorial en `chroma_db/` automáticamente.
 
 ## Endpoints
 
-| Endpoint | Descripción |
-|---|---|
-| `POST /consulta` | Consulta libre sobre inventario |
-| `POST /alerta` | Análisis de estado de un SKU específico |
-| `POST /pedido` | Recomendación de orden de compra |
+| Endpoint | Método | Descripción |
+|---|---|---|
+| `/` | GET | Frontend con dashboard integrado |
+| `/consulta` | POST | Consulta libre sobre inventario |
+| `/alerta` | POST | Análisis y alerta de reorden por SKU |
+| `/pedido` | POST | Recomendación de orden de compra |
+| `/metricas` | GET | Resumen de métricas de observabilidad |
+| `/eventos` | GET | Log de últimos eventos del agente |
+
+## Observabilidad
+
+Cada consulta registra automáticamente:
+- Latencia en milisegundos
+- Tokens estimados consumidos
+- Estado (éxito / error) y tipo de error
+- Endpoint invocado y timestamp
+
+El **Dashboard** (sección lateral del frontend) visualiza en tiempo real:
+- KPIs: total consultas, tasa de éxito, latencia promedio, tokens
+- Gráfico de latencia por consulta
+- Distribución de consultas por endpoint
+- Tasa de éxito vs errores
+- Errores por tipo
+
+## Seguridad
+
+- Validación de formato para SKUs (`CATEGORIA-NNN`)
+- Sanitización de inputs con detección de patrones peligrosos
+- Rate limiting: 20 solicitudes por minuto por IP
+- Protección de datos sensibles en respuestas
 
 ## Regenerar base vectorial
 
-Si modificas `data/inventario.txt`, elimina `chroma_db/` y reinicia:
-```bash
-# Windows
+```powershell
 Remove-Item -Recurse -Force chroma_db
-
-# Mac/Linux
-rm -rf chroma_db
+uvicorn main:app --reload
 ```
 
-## Autores
+## Referencias
 
-- ISY0101 — Ingeniería de Soluciones con IA
-- DuocUC — 2025
+- Lewis et al. (2020). *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks*. arXiv:2005.11401
+- Chase, H. (2022). *LangChain*. https://github.com/langchain-ai/langchain
+- Chroma. (2024). *ChromaDB Documentation*. https://docs.trychroma.com
+- Microsoft. (2024). *GitHub Models*. https://github.com/marketplace/models
+
+---
+
+ISY0101 — Ingeniería de Soluciones con IA · DuocUC 2025
