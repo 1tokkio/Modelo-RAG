@@ -6,120 +6,263 @@
   <title>Retail S.A. — Agente de Inventario</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* ── Variables de color por tema ─────────────────────────────────── */
     :root {
-      --bg:#0f1117;--surface:#1a1d27;--surface2:#222637;--border:#2e3347;
-      --text:#e2e8f0;--muted:#64748b;--accent:#3b82f6;--accent-h:#2563eb;
-      --blue-bg:rgba(59,130,246,0.12);--amber:#f59e0b;--amber-bg:rgba(245,158,11,0.12);
-      --green:#22c55e;--green-bg:rgba(34,197,94,0.12);--red:#ef4444;--sidebar:#13151f;
+      --bg:         #0f1117;
+      --surface:    #1a1d27;
+      --surface2:   #222637;
+      --border:     #2e3347;
+      --text:       #e2e8f0;
+      --muted:      #64748b;
+      --accent:     #3b82f6;
+      --accent-h:   #2563eb;
+      --blue-bg:    rgba(59,130,246,0.12);
+      --amber:      #f59e0b;
+      --amber-bg:   rgba(245,158,11,0.12);
+      --green:      #22c55e;
+      --green-bg:   rgba(34,197,94,0.12);
+      --red:        #ef4444;
+      --sidebar:    #13151f;
     }
-    [data-theme="light"]{--bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--text:#1e293b;--muted:#94a3b8;--sidebar:#1e293b;}
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
-    .topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
-    .topbar-left{display:flex;align-items:center;gap:14px;}
-    .logo{width:28px;height:28px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;}
-    .topbar h1{font-size:.9rem;font-weight:600;color:#fff;}
-    .topbar-meta{font-size:.75rem;color:var(--muted);border-left:1px solid var(--border);padding-left:14px;margin-left:4px;}
-    .topbar-right{display:flex;align-items:center;gap:10px;}
-    .status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
-    .status-label{font-size:.75rem;color:var(--muted);}
-    .theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-family:inherit;transition:all .15s;}
-    .theme-toggle:hover{color:var(--text);border-color:var(--accent);}
+    [data-theme="light"] {
+      --bg:      #f1f5f9;
+      --surface: #ffffff;
+      --surface2:#f8fafc;
+      --border:  #e2e8f0;
+      --text:    #1e293b;
+      --muted:   #94a3b8;
+      --sidebar: #1e293b;
+    }
 
-    .layout{display:flex;flex:1;}
-    .sidebar{width:210px;background:var(--sidebar);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;}
-    .sidebar-section{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;padding:0 16px 8px;}
-    .nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;font-size:.82rem;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .12s;user-select:none;}
-    .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);}
-    .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--blue-bg);}
-    .nav-divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+    /* ── Reset y base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .main{flex:1;padding:28px 32px;max-width:980px;}
-    .page{display:none;}.page.active{display:block;}
-    .page-title{font-size:.8rem;color:var(--muted);margin-bottom:20px;}
-    .page-title span{color:var(--text);font-weight:500;}
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;}
-    .card-top{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;}
-    .card-title-row{display:flex;align-items:center;gap:10px;}
-    .badge{font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:.5px;text-transform:uppercase;}
-    .badge-blue{background:var(--blue-bg);color:var(--accent);}
-    .badge-amber{background:var(--amber-bg);color:var(--amber);}
-    .badge-green{background:var(--green-bg);color:var(--green);}
-    .badge-muted{background:var(--surface2);color:var(--muted);}
-    .badge-red{background:rgba(239,68,68,.15);color:var(--red);}
-    .card h2{font-size:.9rem;font-weight:600;color:var(--text);}
-    .card-body{padding:14px 20px 20px;}
-    .card p.desc{font-size:.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+    /* ── Barra superior ───────────────────────────────────────────────── */
+    .topbar {
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
 
-    label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
-    input,textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-size:.87rem;font-family:inherit;color:var(--text);background:var(--surface2);margin-bottom:12px;transition:border-color .15s;outline:none;}
-    input:focus,textarea:focus{border-color:var(--accent);background:var(--surface);}
-    input::placeholder,textarea::placeholder{color:var(--muted);opacity:.6;}
-    textarea{resize:vertical;min-height:72px;}
-    .row{display:flex;gap:12px;}.row>div{flex:1;}
+    .logo {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700; color: #fff;
+    }
 
-    .btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:7px;font-size:.83rem;font-family:inherit;font-weight:500;cursor:pointer;transition:background .15s;}
-    .btn-primary:hover{background:var(--accent-h);}
-    .btn-primary:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;}
-    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);padding:7px 16px;border-radius:7px;font-size:.8rem;font-family:inherit;cursor:pointer;transition:all .15s;}
-    .btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+    .topbar h1    { font-size: .9rem; font-weight: 600; color: #fff; }
+    .topbar-meta  { font-size: .75rem; color: var(--muted); border-left: 1px solid var(--border); padding-left: 14px; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .status-dot   { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-label { font-size: .75rem; color: var(--muted); }
 
-    .loader{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;margin-right:7px;vertical-align:middle;}
-    @keyframes spin{to{transform:rotate(360deg);}}
+    .theme-toggle {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: .75rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
 
-    .resultado{display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:14px 16px;font-size:.84rem;line-height:1.75;white-space:pre-wrap;color:var(--text);}
-    .resultado.visible{display:block;}
-    .resultado .tag{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase;}
-    .error{color:var(--red);font-size:.83rem;}
+    /* ── Layout principal ─────────────────────────────────────────────── */
+    .layout { display: flex; flex: 1; }
 
-    /* KPIs */
-    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
-    .kpi-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;}
-    .kpi-value{font-size:1.5rem;font-weight:700;color:var(--text);line-height:1;}
-    .kpi-sub{font-size:.7rem;color:var(--muted);margin-top:4px;}
-    .kpi.verde .kpi-value{color:var(--green);}
-    .kpi.rojo .kpi-value{color:var(--red);}
-    .kpi.azul .kpi-value{color:var(--accent);}
-    .kpi.amber .kpi-value{color:var(--amber);}
+    /* ── Barra lateral de navegación ──────────────────────────────────── */
+    .sidebar {
+      width: 210px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    .sidebar-section {
+      font-size: .65rem; font-weight: 700; color: var(--muted);
+      letter-spacing: .8px; text-transform: uppercase;
+      padding: 0 16px 8px;
+    }
+    .nav-divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
 
-    /* percentiles */
-    .perc-row{display:flex;gap:8px;margin-top:8px;}
-    .perc{flex:1;background:var(--surface2);border-radius:6px;padding:8px 10px;text-align:center;}
-    .perc-label{font-size:.65rem;color:var(--muted);margin-bottom:2px;}
-    .perc-val{font-size:.95rem;font-weight:700;color:var(--accent);}
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 16px;
+      font-size: .82rem; color: var(--muted);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all .12s;
+      user-select: none;
+    }
+    .nav-item:hover  { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--blue-bg); }
 
-    /* charts */
-    .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;}
-    .chart-title{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
-    .chart-wrap{position:relative;height:190px;}
+    /* ── Área de contenido ────────────────────────────────────────────── */
+    .main        { flex: 1; padding: 28px 32px; max-width: 980px; }
+    .page        { display: none; }
+    .page.active { display: block; }
+    .page-title  { font-size: .8rem; color: var(--muted); margin-bottom: 20px; }
+    .page-title span { color: var(--text); font-weight: 500; }
 
-    /* análisis */
-    .patron-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
-    .patron-item{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 12px;font-size:.82rem;color:var(--text);}
-    .rec-item{background:var(--surface2);border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:8px 12px;font-size:.82rem;color:var(--text);}
+    /* ── Tarjetas ─────────────────────────────────────────────────────── */
+    .card       { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+    .card-top   { padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+    .card-title-row { display: flex; align-items: center; gap: 10px; }
+    .card h2    { font-size: .9rem; font-weight: 600; color: var(--text); }
+    .card-body  { padding: 14px 20px 20px; }
+    .card p.desc { font-size: .8rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
 
-    /* logs */
-    .log-table{width:100%;border-collapse:collapse;font-size:.78rem;}
-    .log-table th{text-align:left;padding:8px 12px;font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);}
-    .log-table td{padding:8px 12px;border-bottom:1px solid rgba(46,51,71,.5);color:var(--text);vertical-align:middle;}
-    .log-table tr:last-child td{border-bottom:none;}
-    .pill{display:inline-block;font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;}
-    .pill-ok{background:var(--green-bg);color:var(--green);}
-    .pill-err{background:rgba(239,68,68,.15);color:var(--red);}
-    .pill-warn{background:var(--amber-bg);color:var(--amber);}
-    .anom-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:4px;vertical-align:middle;}
+    /* ── Badges ───────────────────────────────────────────────────────── */
+    .badge       { font-size: .65rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: .5px; text-transform: uppercase; }
+    .badge-blue  { background: var(--blue-bg);           color: var(--accent); }
+    .badge-amber { background: var(--amber-bg);          color: var(--amber); }
+    .badge-green { background: var(--green-bg);          color: var(--green); }
+    .badge-muted { background: var(--surface2);          color: var(--muted); }
+    .badge-red   { background: rgba(239,68,68,.15);      color: var(--red); }
 
-    .dash-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-    .auto-badge{font-size:.7rem;color:var(--green);border:1px solid var(--green-bg);background:var(--green-bg);padding:3px 9px;border-radius:20px;}
-    footer{text-align:center;font-size:.72rem;color:var(--border);padding:20px 0;border-top:1px solid var(--border);}
+    /* ── Formularios ──────────────────────────────────────────────────── */
+    label {
+      display: block;
+      font-size: .75rem; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .4px;
+      margin-bottom: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: .87rem; font-family: inherit;
+      color: var(--text); background: var(--surface2);
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, textarea:focus  { border-color: var(--accent); background: var(--surface); }
+    input::placeholder, textarea::placeholder { color: var(--muted); opacity: .6; }
+    textarea { resize: vertical; min-height: 72px; }
+    .row       { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+
+    /* ── Botones ──────────────────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      border: none; padding: 8px 18px;
+      border-radius: 7px; font-size: .83rem; font-family: inherit; font-weight: 500;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-primary:hover    { background: var(--accent-h); }
+    .btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 7px 16px; border-radius: 7px;
+      font-size: .8rem; font-family: inherit; cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ── Indicador de carga ───────────────────────────────────────────── */
+    .loader {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 7px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Caja de resultado ────────────────────────────────────────────── */
+    .resultado {
+      display: none;
+      margin-top: 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; padding: 14px 16px;
+      font-size: .84rem; line-height: 1.75;
+      white-space: pre-wrap; color: var(--text);
+    }
+    .resultado.visible { display: block; }
+    .resultado .tag {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+      margin-bottom: 10px; letter-spacing: .5px; text-transform: uppercase;
+    }
+    .error { color: var(--red); font-size: .83rem; }
+
+    /* ── KPIs del dashboard ───────────────────────────────────────────── */
+    .kpi-grid  { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi       { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+    .kpi-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .kpi-sub   { font-size: .7rem; color: var(--muted); margin-top: 4px; }
+    .kpi.verde .kpi-value { color: var(--green); }
+    .kpi.azul  .kpi-value { color: var(--accent); }
+    .kpi.amber .kpi-value { color: var(--amber); }
+
+    /* ── Fila de percentiles ──────────────────────────────────────────── */
+    .perc-row   { display: flex; gap: 8px; margin-top: 8px; }
+    .perc       { flex: 1; background: var(--surface2); border-radius: 6px; padding: 8px 10px; text-align: center; }
+    .perc-label { font-size: .65rem; color: var(--muted); margin-bottom: 2px; }
+    .perc-val   { font-size: .95rem; font-weight: 700; color: var(--accent); }
+
+    /* ── Gráficos ─────────────────────────────────────────────────────── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .chart-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+    .chart-title { font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .chart-wrap  { position: relative; height: 190px; }
+
+    /* ── Página de análisis ───────────────────────────────────────────── */
+    .patron-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .patron-item { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: .82rem; color: var(--text); }
+    .rec-item    { background: var(--surface2); border-left: 3px solid var(--amber);  border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: .82rem; color: var(--text); }
+
+    /* ── Tabla de logs ────────────────────────────────────────────────── */
+    .log-table    { width: 100%; border-collapse: collapse; font-size: .78rem; }
+    .log-table th { text-align: left; padding: 8px 12px; font-size: .68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+    .log-table td { padding: 8px 12px; border-bottom: 1px solid rgba(46,51,71,.5); color: var(--text); vertical-align: middle; }
+    .log-table tr:last-child td { border-bottom: none; }
+
+    .pill      { display: inline-block; font-size: .63rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; }
+    .pill-ok   { background: var(--green-bg);        color: var(--green); }
+    .pill-err  { background: rgba(239,68,68,.15);    color: var(--red); }
+    .pill-warn { background: var(--amber-bg);        color: var(--amber); }
+    .anom-dot  { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-right: 4px; vertical-align: middle; }
+
+    /* ── Barra de acciones del dashboard ──────────────────────────────── */
+    .dash-bar   { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .auto-badge { font-size: .7rem; color: var(--green); border: 1px solid var(--green-bg); background: var(--green-bg); padding: 3px 9px; border-radius: 20px; }
+
+    footer { text-align: center; font-size: .72rem; color: var(--border); padding: 20px 0; border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
+<!-- ── Barra superior ─────────────────────────────────────────────────── -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo">RS</div>
@@ -129,366 +272,656 @@
   <div class="topbar-right">
     <div class="status-dot"></div>
     <span class="status-label">Agente activo</span>
-    <button class="theme-toggle" onclick="toggleTheme()">☀ Modo claro</button>
+    <button class="theme-toggle" onclick="alternarTema(this)">☀ Modo claro</button>
   </div>
 </div>
 
 <div class="layout">
+
+  <!-- ── Navegación lateral ──────────────────────────────────────────── -->
   <nav class="sidebar">
     <div class="sidebar-section">Módulos</div>
-    <div class="nav-item active" onclick="showPage('consulta',this)"><span>🔍</span> Consulta</div>
-    <div class="nav-item" onclick="showPage('alerta',this)"><span>⚠️</span> Alertas</div>
-    <div class="nav-item" onclick="showPage('pedido',this)"><span>📦</span> Pedidos</div>
-    <hr class="nav-divider"/>
+    <div class="nav-item active" onclick="mostrarPagina('consulta', this)">🔍 Consulta</div>
+    <div class="nav-item"        onclick="mostrarPagina('alerta', this)">⚠️ Alertas</div>
+    <div class="nav-item"        onclick="mostrarPagina('pedido', this)">📦 Pedidos</div>
+    <hr class="nav-divider" />
     <div class="sidebar-section">Observabilidad</div>
-    <div class="nav-item" onclick="showPage('dashboard',this);cargarDashboard()"><span>📊</span> Dashboard</div>
-    <div class="nav-item" onclick="showPage('analisis',this);cargarAnalisis()"><span>🔎</span> Análisis</div>
-    <div class="nav-item" onclick="showPage('logs',this);cargarLogs()"><span>📋</span> Logs</div>
-    <div class="nav-item" onclick="showPage('consistencia',this)"><span>🧪</span> Consistencia</div>
+    <div class="nav-item" onclick="mostrarPagina('dashboard', this); cargarDashboard()">📊 Dashboard</div>
+    <div class="nav-item" onclick="mostrarPagina('analisis', this); cargarAnalisis()">🔎 Análisis</div>
+    <div class="nav-item" onclick="mostrarPagina('logs', this); cargarLogs()">📋 Logs</div>
+    <div class="nav-item" onclick="mostrarPagina('consistencia', this)">🧪 Consistencia</div>
   </nav>
 
+  <!-- ── Contenido principal ─────────────────────────────────────────── -->
   <div class="main">
 
-    <!-- CONSULTA -->
+    <!-- MÓDULO: Consulta libre -->
     <div class="page active" id="page-consulta">
       <div class="page-title">Agente RAG · <span>Consulta General</span></div>
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-blue">Consulta</span><h2>Consulta General</h2></div></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-blue">Consulta</span>
+            <h2>Consulta General</h2>
+          </div>
+        </div>
         <div class="card-body">
           <p class="desc">Pregunta libre sobre el estado del inventario, ventas o contexto de mercado.</p>
-          <label>Pregunta</label>
-          <textarea id="q-consulta" placeholder="Ej: ¿Qué productos tienen stock crítico?"></textarea>
-          <button class="btn-primary" id="btn-consulta" onclick="consultar()">Consultar</button>
-          <div class="resultado" id="r-consulta"></div>
+          <label for="input-consulta">Pregunta</label>
+          <textarea id="input-consulta" placeholder="Ej: ¿Qué productos tienen stock crítico?"></textarea>
+          <button class="btn-primary" id="btn-consulta" onclick="enviarConsulta()">Consultar</button>
+          <div class="resultado" id="res-consulta"></div>
         </div>
       </div>
     </div>
 
-    <!-- ALERTA -->
+    <!-- MÓDULO: Alerta de reorden -->
     <div class="page" id="page-alerta">
       <div class="page-title">Agente RAG · <span>Alerta de Reorden</span></div>
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-amber">Alerta</span><h2>Alerta de Reorden por SKU</h2></div></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-amber">Alerta</span>
+            <h2>Alerta de Reorden por SKU</h2>
+          </div>
+        </div>
         <div class="card-body">
           <p class="desc">Analiza el estado de un producto y determina si requiere reabastecimiento.</p>
-          <label>Código SKU</label>
-          <input id="q-sku-alerta" placeholder="Ej: ELEC-001"/>
-          <button class="btn-primary" id="btn-alerta" onclick="alerta()">Analizar SKU</button>
-          <div class="resultado" id="r-alerta"></div>
+          <label for="input-sku-alerta">Código SKU</label>
+          <input id="input-sku-alerta" placeholder="Ej: ELEC-001" />
+          <button class="btn-primary" id="btn-alerta" onclick="enviarAlerta()">Analizar SKU</button>
+          <div class="resultado" id="res-alerta"></div>
         </div>
       </div>
     </div>
 
-    <!-- PEDIDO -->
+    <!-- MÓDULO: Recomendación de pedido -->
     <div class="page" id="page-pedido">
       <div class="page-title">Agente RAG · <span>Recomendación de Pedido</span></div>
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-green">Pedido</span><h2>Recomendación de Pedido</h2></div></div>
-        <div class="card-body">
-          <p class="desc">Genera orden de compra. Política: 30 días × 1.2 − stock actual. Pedidos sobre $5.000.000 CLP requieren aprobación.</p>
-          <div class="row">
-            <div><label>Código SKU</label><input id="q-sku-pedido" placeholder="Ej: ELEC-001"/></div>
-            <div><label>Stock actual (unidades)</label><input id="q-stock" type="number" placeholder="Ej: 8"/></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-green">Pedido</span>
+            <h2>Recomendación de Pedido</h2>
           </div>
-          <button class="btn-primary" id="btn-pedido" onclick="pedido()">Generar Recomendación</button>
-          <div class="resultado" id="r-pedido"></div>
+        </div>
+        <div class="card-body">
+          <p class="desc">
+            Genera una orden de compra. Política: demanda 30d × 1.2 − stock actual.
+            Pedidos sobre $5.000.000 CLP requieren aprobación gerencial.
+          </p>
+          <div class="row">
+            <div>
+              <label for="input-sku-pedido">Código SKU</label>
+              <input id="input-sku-pedido" placeholder="Ej: ELEC-001" />
+            </div>
+            <div>
+              <label for="input-stock">Stock actual (unidades)</label>
+              <input id="input-stock" type="number" placeholder="Ej: 8" />
+            </div>
+          </div>
+          <button class="btn-primary" id="btn-pedido" onclick="enviarPedido()">Generar Recomendación</button>
+          <div class="resultado" id="res-pedido"></div>
         </div>
       </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- OBSERVABILIDAD: Dashboard de métricas -->
     <div class="page" id="page-dashboard">
       <div class="page-title">Observabilidad · <span>Dashboard de Métricas</span></div>
+
       <div class="dash-bar">
-        <span id="dash-ts" style="font-size:.75rem;color:var(--muted)">—</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="auto-badge" id="auto-badge">● Auto-refresh 30s</span>
+        <span id="dashboard-timestamp" style="font-size:.75rem; color:var(--muted)">—</span>
+        <div style="display:flex; gap:8px; align-items:center">
+          <span class="auto-badge">● Auto-refresh 30s</span>
           <button class="btn-ghost" onclick="cargarDashboard()">↻ Actualizar</button>
         </div>
       </div>
 
+      <!-- KPIs principales -->
       <div class="kpi-grid">
-        <div class="kpi azul"><div class="kpi-label">Total consultas</div><div class="kpi-value" id="k-total">—</div><div class="kpi-sub">desde inicio del servidor</div></div>
-        <div class="kpi verde"><div class="kpi-label">Tasa de éxito</div><div class="kpi-value" id="k-exito">—</div><div class="kpi-sub">respuestas válidas</div></div>
-        <div class="kpi"><div class="kpi-label">Latencia promedio</div><div class="kpi-value" id="k-lat">—</div><div class="kpi-sub">milisegundos</div></div>
-        <div class="kpi amber"><div class="kpi-label">Tokens estimados</div><div class="kpi-value" id="k-tok">—</div><div class="kpi-sub">uso acumulado</div></div>
+        <div class="kpi azul">
+          <div class="kpi-label">Total consultas</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-sub">desde inicio del servidor</div>
+        </div>
+        <div class="kpi verde">
+          <div class="kpi-label">Tasa de éxito</div>
+          <div class="kpi-value" id="kpi-exito">—</div>
+          <div class="kpi-sub">respuestas válidas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Latencia promedio</div>
+          <div class="kpi-value" id="kpi-latencia">—</div>
+          <div class="kpi-sub">milisegundos</div>
+        </div>
+        <div class="kpi amber">
+          <div class="kpi-label">Tokens estimados</div>
+          <div class="kpi-value" id="kpi-tokens">—</div>
+          <div class="kpi-sub">uso acumulado</div>
+        </div>
       </div>
 
+      <!-- Percentiles P50 / P95 / P99 y promedios de sistema -->
       <div class="card">
         <div class="card-body" style="padding-top:16px">
-          <div style="font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px">Percentiles de Latencia</div>
+          <div style="font-size:.75rem; font-weight:600; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:.4px">
+            Percentiles de Latencia
+          </div>
           <div class="perc-row">
-            <div class="perc"><div class="perc-label">P50</div><div class="perc-val" id="p50">—</div></div>
-            <div class="perc"><div class="perc-label">P95</div><div class="perc-val" id="p95">—</div></div>
-            <div class="perc"><div class="perc-label">P99</div><div class="perc-val" id="p99">—</div></div>
-            <div class="perc"><div class="perc-label">RAG avg</div><div class="perc-val" id="p-rag">—</div></div>
-            <div class="perc"><div class="perc-label">LLM avg</div><div class="perc-val" id="p-llm">—</div></div>
-            <div class="perc"><div class="perc-label">RAM avg</div><div class="perc-val" id="p-ram">—</div></div>
-            <div class="perc"><div class="perc-label">CPU avg</div><div class="perc-val" id="p-cpu">—</div></div>
+            <div class="perc"><div class="perc-label">P50</div><div class="perc-val" id="perc-p50">—</div></div>
+            <div class="perc"><div class="perc-label">P95</div><div class="perc-val" id="perc-p95">—</div></div>
+            <div class="perc"><div class="perc-label">P99</div><div class="perc-val" id="perc-p99">—</div></div>
+            <div class="perc"><div class="perc-label">RAG avg</div><div class="perc-val" id="perc-rag">—</div></div>
+            <div class="perc"><div class="perc-label">LLM avg</div><div class="perc-val" id="perc-llm">—</div></div>
+            <div class="perc"><div class="perc-label">RAM avg</div><div class="perc-val" id="perc-ram">—</div></div>
+            <div class="perc"><div class="perc-label">CPU avg</div><div class="perc-val" id="perc-cpu">—</div></div>
           </div>
         </div>
       </div>
 
+      <!-- Gráficos fila 1: latencia total y desglose RAG/LLM -->
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Latencia total por consulta <span style="font-size:.7rem;color:var(--red)">● anomalía</span></div>
-          <div class="chart-wrap"><canvas id="ch-lat"></canvas></div>
+          <div class="chart-title">
+            Latencia total por consulta
+            <span style="font-size:.7rem; color:var(--red)">● anomalía</span>
+          </div>
+          <div class="chart-wrap"><canvas id="grafico-latencia"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">RAG vs LLM (ms)</div>
-          <div class="chart-wrap"><canvas id="ch-split"></canvas></div>
+          <div class="chart-wrap"><canvas id="grafico-split"></canvas></div>
         </div>
       </div>
 
+      <!-- Gráficos fila 2: distribución por endpoint y tasa de éxito -->
       <div class="charts-grid">
         <div class="chart-card">
           <div class="chart-title">Consultas por endpoint</div>
-          <div class="chart-wrap"><canvas id="ch-ep"></canvas></div>
+          <div class="chart-wrap"><canvas id="grafico-endpoints"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Éxito vs Errores</div>
-          <div class="chart-wrap"><canvas id="ch-exito"></canvas></div>
+          <div class="chart-wrap"><canvas id="grafico-exito"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- ANÁLISIS -->
+    <!-- OBSERVABILIDAD: Patrones y recomendaciones -->
     <div class="page" id="page-analisis">
       <div class="page-title">Observabilidad · <span>Patrones y Recomendaciones</span></div>
+
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-amber">Patrones</span><h2>Patrones detectados</h2></div><button class="btn-ghost" onclick="cargarAnalisis()">↻ Actualizar</button></div>
-        <div class="card-body"><ul class="patron-list" id="lista-patrones"><li style="color:var(--muted)">Cargando...</li></ul></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-amber">Patrones</span>
+            <h2>Patrones detectados</h2>
+          </div>
+          <button class="btn-ghost" onclick="cargarAnalisis()">↻ Actualizar</button>
+        </div>
+        <div class="card-body">
+          <ul class="patron-list" id="lista-patrones">
+            <li style="color:var(--muted)">Cargando...</li>
+          </ul>
+        </div>
       </div>
+
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-green">Mejoras</span><h2>Recomendaciones de optimización</h2></div></div>
-        <div class="card-body"><ul class="patron-list" id="lista-recs"><li style="color:var(--muted)">Cargando...</li></ul></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-green">Mejoras</span>
+            <h2>Recomendaciones de optimización</h2>
+          </div>
+        </div>
+        <div class="card-body">
+          <ul class="patron-list" id="lista-recomendaciones">
+            <li style="color:var(--muted)">Cargando...</li>
+          </ul>
+        </div>
       </div>
+
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-red">Errores</span><h2>Errores recientes</h2></div></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-red">Errores</span>
+            <h2>Errores recientes</h2>
+          </div>
+        </div>
         <div class="card-body">
           <table class="log-table">
-            <thead><tr><th>Timestamp</th><th>Endpoint</th><th>Error</th></tr></thead>
-            <tbody id="tbody-errores"><tr><td colspan="3" style="color:var(--muted);text-align:center;padding:16px">Cargando...</td></tr></tbody>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Endpoint</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-errores">
+              <tr><td colspan="3" style="color:var(--muted); text-align:center; padding:16px">Cargando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- LOGS -->
+    <!-- OBSERVABILIDAD: Log de eventos -->
     <div class="page" id="page-logs">
       <div class="page-title">Observabilidad · <span>Registro de Eventos</span></div>
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-muted">Sistema</span><h2>Últimos 50 eventos</h2></div><button class="btn-ghost" onclick="cargarLogs()">↻ Actualizar</button></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-muted">Sistema</span>
+            <h2>Últimos 50 eventos</h2>
+          </div>
+          <button class="btn-ghost" onclick="cargarLogs()">↻ Actualizar</button>
+        </div>
         <div class="card-body" style="padding-top:14px">
           <table class="log-table">
-            <thead><tr><th>Timestamp</th><th>Endpoint</th><th>Total</th><th>RAG</th><th>LLM</th><th>Tokens</th><th>Nivel</th><th>Error</th></tr></thead>
-            <tbody id="logs-body"><tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Cargando...</td></tr></tbody>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Endpoint</th>
+                <th>Total</th>
+                <th>RAG</th>
+                <th>LLM</th>
+                <th>Tokens</th>
+                <th>Nivel</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-logs">
+              <tr><td colspan="8" style="color:var(--muted); text-align:center; padding:20px">Cargando...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- CONSISTENCIA -->
+    <!-- OBSERVABILIDAD: Test de consistencia -->
     <div class="page" id="page-consistencia">
       <div class="page-title">Observabilidad · <span>Test de Consistencia</span></div>
       <div class="card">
-        <div class="card-top"><div class="card-title-row"><span class="badge badge-blue">IE1</span><h2>Medición de Consistencia</h2></div></div>
+        <div class="card-top">
+          <div class="card-title-row">
+            <span class="badge badge-blue">Jaccard</span>
+            <h2>Medición de Consistencia</h2>
+          </div>
+        </div>
         <div class="card-body">
-          <p class="desc">Envía la misma consulta 3 veces y mide la similitud entre respuestas. Consistencia ≥70% = ALTA.</p>
-          <label>Consulta a evaluar</label>
-          <textarea id="q-consist" placeholder="Ej: ¿Qué productos necesitan reabastecimiento urgente?"></textarea>
-          <button class="btn-primary" id="btn-consist" onclick="testConsistencia()">Evaluar consistencia</button>
-          <div class="resultado" id="r-consist"></div>
+          <p class="desc">
+            Envía la misma consulta 3 veces y mide la similitud entre respuestas usando el índice de Jaccard.
+            Consistencia ≥ 70% = ALTA.
+          </p>
+          <label for="input-consistencia">Consulta a evaluar</label>
+          <textarea id="input-consistencia" placeholder="Ej: ¿Qué productos necesitan reabastecimiento urgente?"></textarea>
+          <button class="btn-primary" id="btn-consistencia" onclick="enviarConsistencia()">Evaluar consistencia</button>
+          <div class="resultado" id="res-consistencia"></div>
         </div>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /main -->
+</div><!-- /layout -->
 
 <footer>Agente RAG · LangChain + ChromaDB + GitHub Models · gpt-4o-mini</footer>
 
 <script>
-const BASE="http://127.0.0.1:8000";
-let charts={}, autoRefresh=null;
+  // ── Configuración ─────────────────────────────────────────────────────
+  const API_BASE = "http://127.0.0.1:8000";
 
-function showPage(id,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  el.classList.add('active');
-  if(id==='dashboard'){
-    clearInterval(autoRefresh);
-    autoRefresh=setInterval(cargarDashboard,30000);
-  } else {
-    clearInterval(autoRefresh);
+  // Instancias activas de Chart.js — se destruyen antes de recrear para evitar duplicados
+  const graficos = {};
+
+  // Referencia al intervalo del auto-refresh del dashboard
+  let intervaloAutoRefresh = null;
+
+
+  // ── Navegación ────────────────────────────────────────────────────────
+
+  function mostrarPagina(idPagina, elementoNav) {
+    // Desactivar página y nav activos
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+
+    document.getElementById("page-" + idPagina).classList.add("active");
+    elementoNav.classList.add("active");
+
+    // El auto-refresh solo corre mientras el dashboard está visible
+    if (idPagina === "dashboard") {
+      intervaloAutoRefresh = setInterval(cargarDashboard, 30000);
+    } else {
+      clearInterval(intervaloAutoRefresh);
+    }
   }
-}
 
-function toggleTheme(){
-  const h=document.documentElement;
-  const dark=h.getAttribute('data-theme')==='dark';
-  h.setAttribute('data-theme',dark?'light':'dark');
-  event.currentTarget.textContent=dark?'🌙 Modo oscuro':'☀ Modo claro';
-  Object.keys(charts).forEach(k=>{charts[k].destroy();delete charts[k];});
-  cargarDashboard();
-}
+  function alternarTema(boton) {
+    const html   = document.documentElement;
+    const oscuro = html.getAttribute("data-theme") === "dark";
+    html.setAttribute("data-theme", oscuro ? "light" : "dark");
+    boton.textContent = oscuro ? "🌙 Modo oscuro" : "☀ Modo claro";
 
-function setLoading(btn,loading){
-  if(loading){btn.disabled=true;btn.dataset.orig=btn.innerHTML;btn.innerHTML='<span class="loader"></span>Procesando...';}
-  else{btn.disabled=false;btn.innerHTML=btn.dataset.orig;}
-}
+    // Destruir gráficos para que se recreen con la nueva paleta de colores
+    Object.keys(graficos).forEach(k => { graficos[k].destroy(); delete graficos[k]; });
+    cargarDashboard();
+  }
 
-async function llamar(ep,body,btnId,resId,badgeClass,label){
-  const btn=document.getElementById(btnId);
-  const el=document.getElementById(resId);
-  setLoading(btn,true);
-  el.className="resultado visible";
-  el.innerHTML="Consultando al agente...";
-  try{
-    const res=await fetch(`${BASE}/${ep}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    const data=await res.json();
-    if(!res.ok){el.innerHTML=`<span class="error">Error ${res.status}: ${data.detail||JSON.stringify(data)}</span>`;return;}
-    const texto=data.respuesta||data.analisis||data.recomendacion||JSON.stringify(data,null,2);
-    el.innerHTML=`<span class="tag ${badgeClass}">${label}</span>\n${texto}`;
-  }catch(e){
-    el.innerHTML=`<span class="error">Error: ${e.message}. Verifica que el servidor esté corriendo.</span>`;
-  }finally{setLoading(btn,false);}
-}
 
-function consultar(){llamar("consulta",{pregunta:document.getElementById("q-consulta").value},"btn-consulta","r-consulta","badge-blue","Respuesta");}
-function alerta(){llamar("alerta",{sku:document.getElementById("q-sku-alerta").value},"btn-alerta","r-alerta","badge-amber","Análisis");}
-function pedido(){llamar("pedido",{sku:document.getElementById("q-sku-pedido").value,stock_actual:parseInt(document.getElementById("q-stock").value)||0},"btn-pedido","r-pedido","badge-green","Recomendación");}
+  // ── Helpers de UI ─────────────────────────────────────────────────────
 
-async function testConsistencia(){
-  const btn=document.getElementById("btn-consist");
-  const el=document.getElementById("r-consist");
-  setLoading(btn,true);
-  el.className="resultado visible";
-  el.innerHTML="Ejecutando 3 consultas para medir consistencia...";
-  try{
-    const res=await fetch(`${BASE}/test-consistencia`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pregunta:document.getElementById("q-consist").value})});
-    const d=await res.json();
-    const color=d.evaluacion==="ALTA"?"var(--green)":d.evaluacion==="MEDIA"?"var(--amber)":"var(--red)";
-    el.innerHTML=`<span class="tag badge-blue">Consistencia</span>\n`+
-      `Evaluación: <strong style="color:${color}">${d.evaluacion}</strong> — ${d.consistencia_pct}% similitud promedio\n\n`+
-      `Similitud respuesta 1↔2: ${d.similitud_1_2}%\n`+
-      `Similitud respuesta 1↔3: ${d.similitud_1_3}%\n`+
-      `Similitud respuesta 2↔3: ${d.similitud_2_3}%\n\n`+
-      `--- Respuesta 1 ---\n${d.respuestas[0]}\n\n`+
-      `--- Respuesta 2 ---\n${d.respuestas[1]}\n\n`+
-      `--- Respuesta 3 ---\n${d.respuestas[2]}`;
-  }catch(e){el.innerHTML=`<span class="error">Error: ${e.message}</span>`;}
-  finally{setLoading(btn,false);}
-}
+  function activarCarga(boton) {
+    boton.disabled = true;
+    boton.dataset.textoOriginal = boton.innerHTML;
+    boton.innerHTML = '<span class="loader"></span>Procesando...';
+  }
 
-function mkChart(id,type,data,extra={}){
-  if(charts[id])charts[id].destroy();
-  const ctx=document.getElementById(id).getContext('2d');
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const gc=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
-  const tc=dark?'#64748b':'#94a3b8';
-  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{labels:{color:tc,font:{size:11}}}},
-    scales:type!=='pie'&&type!=='doughnut'?{x:{grid:{color:gc},ticks:{color:tc,font:{size:10}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10}}}}:{},
-    ...extra}});
-}
+  function desactivarCarga(boton) {
+    boton.disabled  = false;
+    boton.innerHTML = boton.dataset.textoOriginal;
+  }
 
-async function cargarDashboard(){
-  try{
-    const res=await fetch(`${BASE}/metricas`);
-    const d=await res.json();
-    document.getElementById('k-total').textContent=d.total_consultas;
-    document.getElementById('k-exito').textContent=d.tasa_exito_pct+'%';
-    document.getElementById('k-lat').textContent=d.latencia_promedio_ms;
-    document.getElementById('k-tok').textContent=d.tokens_estimados_total.toLocaleString();
-    document.getElementById('p50').textContent=d.p50_ms+'ms';
-    document.getElementById('p95').textContent=d.p95_ms+'ms';
-    document.getElementById('p99').textContent=d.p99_ms+'ms';
-    document.getElementById('p-rag').textContent=d.latencia_rag_promedio_ms+'ms';
-    document.getElementById('p-llm').textContent=d.latencia_llm_promedio_ms+'ms';
-    document.getElementById('p-ram').textContent=d.ram_mb_promedio?d.ram_mb_promedio+'MB':'N/A';
-    document.getElementById('p-cpu').textContent=d.cpu_pct_promedio?d.cpu_pct_promedio+'%':'N/A';
-    document.getElementById('dash-ts').textContent='Actualizado: '+new Date().toLocaleTimeString('es-CL');
 
-    const lats=d.ultimas_latencias;
-    const ev=await fetch(`${BASE}/eventos?limite=30`).then(r=>r.json()).then(j=>j.eventos);
-    const anomIdx=ev.map((e,i)=>e.anomalia?i:-1).filter(i=>i>=0);
-    const ptColors=lats.map((_,i)=>anomIdx.includes(i)?'#ef4444':'#3b82f6');
-    const ptRadius=lats.map((_,i)=>anomIdx.includes(i)?6:3);
+  // ── Llamadas a la API de negocio ─────────────────────────────────────
 
-    mkChart('ch-lat','line',{
-      labels:lats.map((_,i)=>`#${i+1}`),
-      datasets:[{label:'Latencia (ms)',data:lats,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',
-        tension:.4,fill:true,pointBackgroundColor:ptColors,pointRadius:ptRadius}]
+  async function llamarAPI(endpoint, cuerpo, idBoton, idResultado, claseTag, textoTag) {
+    const boton     = document.getElementById(idBoton);
+    const resultado = document.getElementById(idResultado);
+
+    activarCarga(boton);
+    resultado.className = "resultado visible";
+    resultado.innerHTML = "Consultando al agente...";
+
+    try {
+      const respuesta = await fetch(`${API_BASE}/${endpoint}`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(cuerpo),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        resultado.innerHTML = `<span class="error">Error ${respuesta.status}: ${datos.detail || JSON.stringify(datos)}</span>`;
+        return;
+      }
+
+      // Mostrar el campo de texto más relevante según el endpoint
+      const texto = datos.respuesta || datos.analisis || datos.recomendacion || JSON.stringify(datos, null, 2);
+      resultado.innerHTML = `<span class="tag ${claseTag}">${textoTag}</span>\n${texto}`;
+
+    } catch (error) {
+      resultado.innerHTML = `<span class="error">Error: ${error.message}. Verifica que el servidor esté corriendo en ${API_BASE}.</span>`;
+    } finally {
+      desactivarCarga(boton);
+    }
+  }
+
+  function enviarConsulta() {
+    llamarAPI(
+      "consulta",
+      { pregunta: document.getElementById("input-consulta").value },
+      "btn-consulta", "res-consulta",
+      "badge-blue", "Respuesta"
+    );
+  }
+
+  function enviarAlerta() {
+    llamarAPI(
+      "alerta",
+      { sku: document.getElementById("input-sku-alerta").value },
+      "btn-alerta", "res-alerta",
+      "badge-amber", "Análisis"
+    );
+  }
+
+  function enviarPedido() {
+    llamarAPI(
+      "pedido",
+      {
+        sku:          document.getElementById("input-sku-pedido").value,
+        stock_actual: parseInt(document.getElementById("input-stock").value) || 0,
+      },
+      "btn-pedido", "res-pedido",
+      "badge-green", "Recomendación"
+    );
+  }
+
+  async function enviarConsistencia() {
+    const boton     = document.getElementById("btn-consistencia");
+    const resultado = document.getElementById("res-consistencia");
+
+    activarCarga(boton);
+    resultado.className = "resultado visible";
+    resultado.innerHTML = "Ejecutando 3 consultas para medir consistencia...";
+
+    try {
+      const respuesta = await fetch(`${API_BASE}/test-consistencia`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ pregunta: document.getElementById("input-consistencia").value }),
+      });
+
+      const datos = await respuesta.json();
+
+      const colorEval =
+        datos.evaluacion === "ALTA"  ? "var(--green)" :
+        datos.evaluacion === "MEDIA" ? "var(--amber)" : "var(--red)";
+
+      resultado.innerHTML =
+        `<span class="tag badge-blue">Consistencia</span>\n` +
+        `Evaluación: <strong style="color:${colorEval}">${datos.evaluacion}</strong> — ${datos.consistencia_pct}% similitud promedio\n\n` +
+        `Similitud respuesta 1↔2: ${datos.similitud_1_2}%\n` +
+        `Similitud respuesta 1↔3: ${datos.similitud_1_3}%\n` +
+        `Similitud respuesta 2↔3: ${datos.similitud_2_3}%\n\n` +
+        `--- Respuesta 1 ---\n${datos.respuestas[0]}\n\n` +
+        `--- Respuesta 2 ---\n${datos.respuestas[1]}\n\n` +
+        `--- Respuesta 3 ---\n${datos.respuestas[2]}`;
+
+    } catch (error) {
+      resultado.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+    } finally {
+      desactivarCarga(boton);
+    }
+  }
+
+
+  // ── Dashboard ─────────────────────────────────────────────────────────
+
+  function crearGrafico(idCanvas, tipo, datos, opcionesExtra = {}) {
+    // Destruir el gráfico anterior si existe para evitar conflictos
+    if (graficos[idCanvas]) graficos[idCanvas].destroy();
+
+    const ctx    = document.getElementById(idCanvas).getContext("2d");
+    const oscuro = document.documentElement.getAttribute("data-theme") === "dark";
+    const colorLineasGrid = oscuro ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.06)";
+    const colorTextoEjes  = oscuro ? "#64748b" : "#94a3b8";
+
+    const escalaBase = {
+      grid:  { color: colorLineasGrid },
+      ticks: { color: colorTextoEjes, font: { size: 10 } },
+    };
+
+    graficos[idCanvas] = new Chart(ctx, {
+      type: tipo,
+      data: datos,
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: colorTextoEjes, font: { size: 11 } } },
+        },
+        // Los gráficos de tipo pie/doughnut no usan ejes cartesianos
+        scales: (tipo !== "pie" && tipo !== "doughnut") ? { x: escalaBase, y: escalaBase } : {},
+        ...opcionesExtra,
+      },
     });
+  }
 
-    const rags=d.ultimas_latencias_rag||[];
-    const llms=d.ultimas_latencias_llm||[];
-    mkChart('ch-split','bar',{
-      labels:rags.map((_,i)=>`#${i+1}`),
-      datasets:[
-        {label:'RAG (ms)',data:rags,backgroundColor:'rgba(34,197,94,.7)',borderRadius:3,stack:'s'},
-        {label:'LLM (ms)',data:llms,backgroundColor:'rgba(59,130,246,.7)',borderRadius:3,stack:'s'}
-      ]
-    },{scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b',font:{size:10}}},y:{stacked:true,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#64748b',font:{size:10}}}}});
+  async function cargarDashboard() {
+    try {
+      const metricas = await fetch(`${API_BASE}/metricas`).then(r => r.json());
+      const eventos  = await fetch(`${API_BASE}/eventos?limite=30`).then(r => r.json()).then(j => j.eventos);
 
-    const eps=d.consultas_por_endpoint;
-    mkChart('ch-ep','bar',{
-      labels:Object.keys(eps),
-      datasets:[{label:'Consultas',data:Object.values(eps),backgroundColor:['#3b82f6','#f59e0b','#22c55e'],borderRadius:6}]
-    });
+      // Actualizar KPIs
+      document.getElementById("kpi-total").textContent    = metricas.total_consultas;
+      document.getElementById("kpi-exito").textContent    = metricas.tasa_exito_pct + "%";
+      document.getElementById("kpi-latencia").textContent = metricas.latencia_promedio_ms;
+      document.getElementById("kpi-tokens").textContent   = metricas.tokens_estimados_total.toLocaleString();
 
-    const t=d.total_consultas,er=d.total_errores;
-    mkChart('ch-exito','doughnut',{
-      labels:['Exitosas','Errores'],
-      datasets:[{data:[t-er,er],backgroundColor:['#22c55e','#ef4444'],borderWidth:0}]
-    });
-  }catch(e){console.error('Dashboard error:',e);}
-}
+      // Actualizar percentiles
+      document.getElementById("perc-p50").textContent = metricas.p50_ms + " ms";
+      document.getElementById("perc-p95").textContent = metricas.p95_ms + " ms";
+      document.getElementById("perc-p99").textContent = metricas.p99_ms + " ms";
+      document.getElementById("perc-rag").textContent = metricas.latencia_rag_promedio_ms + " ms";
+      document.getElementById("perc-llm").textContent = metricas.latencia_llm_promedio_ms + " ms";
+      document.getElementById("perc-ram").textContent = metricas.ram_mb_promedio ? metricas.ram_mb_promedio + " MB" : "N/A";
+      document.getElementById("perc-cpu").textContent = metricas.cpu_pct_promedio ? metricas.cpu_pct_promedio + "%" : "N/A";
 
-async function cargarAnalisis(){
-  try{
-    const d=await fetch(`${BASE}/analisis`).then(r=>r.json());
-    const lp=document.getElementById('lista-patrones');
-    const lr=document.getElementById('lista-recs');
-    const te=document.getElementById('tbody-errores');
-    lp.innerHTML=d.patrones_detectados.length
-      ?d.patrones_detectados.map(p=>`<li class="patron-item">${p}</li>`).join('')
-      :'<li style="color:var(--muted)">Sin patrones detectados aún — realiza más consultas.</li>';
-    lr.innerHTML=d.recomendaciones.length
-      ?d.recomendaciones.map(r=>`<li class="rec-item">${r}</li>`).join('')
-      :'<li style="color:var(--muted)">Sin recomendaciones automáticas aún.</li>';
-    te.innerHTML=d.errores_recientes.length
-      ?d.errores_recientes.map(e=>`<tr><td style="color:var(--muted);font-size:.73rem">${e.timestamp.slice(0,19).replace('T',' ')}</td><td><span class="badge badge-blue">${e.endpoint}</span></td><td style="color:var(--red)">${e.error||'—'}</td></tr>`).join('')
-      :'<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:14px">Sin errores recientes.</td></tr>';
-  }catch(e){console.error('Análisis error:',e);}
-}
+      document.getElementById("dashboard-timestamp").textContent =
+        "Actualizado: " + new Date().toLocaleTimeString("es-CL");
 
-async function cargarLogs(){
-  const tb=document.getElementById('logs-body');
-  tb.innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Cargando...</td></tr>';
-  try{
-    const d=await fetch(`${BASE}/eventos?limite=50`).then(r=>r.json());
-    const ev=[...d.eventos].reverse();
-    if(!ev.length){tb.innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Sin eventos aún.</td></tr>';return;}
-    tb.innerHTML=ev.map(e=>{
-      const nivel=e.nivel||'INFO';
-      const pillCls=nivel==='ERROR'?'pill-err':nivel==='WARNING'?'pill-warn':'pill-ok';
-      const anom=e.anomalia?'<span class="anom-dot"></span>':'';
-      return`<tr>
-        <td style="color:var(--muted);font-size:.73rem">${e.timestamp.slice(0,19).replace('T',' ')}</td>
-        <td><span class="badge badge-blue">${e.endpoint}</span></td>
-        <td>${anom}${e.latencia_ms} ms</td>
-        <td style="color:var(--green)">${e.latencia_rag_ms||0} ms</td>
-        <td style="color:var(--accent)">${e.latencia_llm_ms||0} ms</td>
-        <td>${e.tokens_estimados}</td>
-        <td><span class="pill ${pillCls}">${nivel}</span></td>
-        <td style="color:var(--red);font-size:.73rem">${e.error||'—'}</td>
-      </tr>`;
-    }).join('');
-  }catch(e){tb.innerHTML=`<tr><td colspan="8"><span class="error">Error: ${e.message}</span></td></tr>`;}
-}
+      // Resaltar con punto rojo las consultas que fueron marcadas como anomalía
+      const indicesAnomalia = eventos.map((e, i) => e.anomalia ? i : -1).filter(i => i >= 0);
+      const coloresPuntos   = metricas.ultimas_latencias.map((_, i) => indicesAnomalia.includes(i) ? "#ef4444" : "#3b82f6");
+      const radiosPuntos    = metricas.ultimas_latencias.map((_, i) => indicesAnomalia.includes(i) ? 6 : 3);
+
+      // Gráfico 1: Latencia total con anomalías destacadas en rojo
+      crearGrafico("grafico-latencia", "line", {
+        labels: metricas.ultimas_latencias.map((_, i) => `#${i + 1}`),
+        datasets: [{
+          label:              "Latencia (ms)",
+          data:               metricas.ultimas_latencias,
+          borderColor:        "#3b82f6",
+          backgroundColor:    "rgba(59,130,246,.1)",
+          tension:            .4,
+          fill:               true,
+          pointBackgroundColor: coloresPuntos,
+          pointRadius:          radiosPuntos,
+        }],
+      });
+
+      // Gráfico 2: Desglose RAG vs LLM en barras apiladas
+      crearGrafico("grafico-split", "bar", {
+        labels: metricas.ultimas_latencias_rag.map((_, i) => `#${i + 1}`),
+        datasets: [
+          {
+            label:           "RAG (ms)",
+            data:            metricas.ultimas_latencias_rag,
+            backgroundColor: "rgba(34,197,94,.7)",
+            borderRadius:    3,
+            stack:           "latencia",
+          },
+          {
+            label:           "LLM (ms)",
+            data:            metricas.ultimas_latencias_llm,
+            backgroundColor: "rgba(59,130,246,.7)",
+            borderRadius:    3,
+            stack:           "latencia",
+          },
+        ],
+      }, {
+        scales: {
+          x: { stacked: true, grid: { color: "rgba(255,255,255,.05)" }, ticks: { color: "#64748b", font: { size: 10 } } },
+          y: { stacked: true, grid: { color: "rgba(255,255,255,.05)" }, ticks: { color: "#64748b", font: { size: 10 } } },
+        },
+      });
+
+      // Gráfico 3: Cantidad de consultas por endpoint
+      crearGrafico("grafico-endpoints", "bar", {
+        labels: Object.keys(metricas.consultas_por_endpoint),
+        datasets: [{
+          label:           "Consultas",
+          data:            Object.values(metricas.consultas_por_endpoint),
+          backgroundColor: ["#3b82f6", "#f59e0b", "#22c55e"],
+          borderRadius:    6,
+        }],
+      });
+
+      // Gráfico 4: Proporción de respuestas exitosas vs errores
+      crearGrafico("grafico-exito", "doughnut", {
+        labels: ["Exitosas", "Errores"],
+        datasets: [{
+          data:            [metricas.total_consultas - metricas.total_errores, metricas.total_errores],
+          backgroundColor: ["#22c55e", "#ef4444"],
+          borderWidth:     0,
+        }],
+      });
+
+    } catch (error) {
+      console.error("Error cargando el dashboard:", error);
+    }
+  }
+
+
+  // ── Análisis de patrones ─────────────────────────────────────────────
+
+  async function cargarAnalisis() {
+    try {
+      const datos = await fetch(`${API_BASE}/analisis`).then(r => r.json());
+
+      document.getElementById("lista-patrones").innerHTML =
+        datos.patrones_detectados.length
+          ? datos.patrones_detectados.map(p => `<li class="patron-item">${p}</li>`).join("")
+          : "<li style='color:var(--muted)'>Sin patrones detectados aún — realiza más consultas.</li>";
+
+      document.getElementById("lista-recomendaciones").innerHTML =
+        datos.recomendaciones.length
+          ? datos.recomendaciones.map(r => `<li class="rec-item">${r}</li>`).join("")
+          : "<li style='color:var(--muted)'>Sin recomendaciones automáticas aún.</li>";
+
+      document.getElementById("tabla-errores").innerHTML =
+        datos.errores_recientes.length
+          ? datos.errores_recientes.map(e =>
+              `<tr>
+                <td style="color:var(--muted); font-size:.73rem">${e.timestamp.slice(0, 19).replace("T", " ")}</td>
+                <td><span class="badge badge-blue">${e.endpoint}</span></td>
+                <td style="color:var(--red)">${e.error || "—"}</td>
+              </tr>`
+            ).join("")
+          : "<tr><td colspan='3' style='color:var(--muted); text-align:center; padding:14px'>Sin errores recientes.</td></tr>";
+
+    } catch (error) {
+      console.error("Error cargando análisis:", error);
+    }
+  }
+
+
+  // ── Log de eventos ────────────────────────────────────────────────────
+
+  async function cargarLogs() {
+    const cuerpoTabla = document.getElementById("tabla-logs");
+    cuerpoTabla.innerHTML = "<tr><td colspan='8' style='color:var(--muted); text-align:center; padding:20px'>Cargando...</td></tr>";
+
+    try {
+      const datos   = await fetch(`${API_BASE}/eventos?limite=50`).then(r => r.json());
+      const eventos = [...datos.eventos].reverse(); // más reciente primero
+
+      if (!eventos.length) {
+        cuerpoTabla.innerHTML = "<tr><td colspan='8' style='color:var(--muted); text-align:center; padding:20px'>Sin eventos aún.</td></tr>";
+        return;
+      }
+
+      cuerpoTabla.innerHTML = eventos.map(evento => {
+        const nivel     = evento.nivel || "INFO";
+        const classPill = nivel === "ERROR" ? "pill-err" : nivel === "WARNING" ? "pill-warn" : "pill-ok";
+        const marcaAnomalia = evento.anomalia ? '<span class="anom-dot"></span>' : "";
+
+        return `<tr>
+          <td style="color:var(--muted); font-size:.73rem">${evento.timestamp.slice(0, 19).replace("T", " ")}</td>
+          <td><span class="badge badge-blue">${evento.endpoint}</span></td>
+          <td>${marcaAnomalia}${evento.latencia_ms} ms</td>
+          <td style="color:var(--green)">${evento.latencia_rag_ms || 0} ms</td>
+          <td style="color:var(--accent)">${evento.latencia_llm_ms || 0} ms</td>
+          <td>${evento.tokens_estimados}</td>
+          <td><span class="pill ${classPill}">${nivel}</span></td>
+          <td style="color:var(--red); font-size:.73rem">${evento.error || "—"}</td>
+        </tr>`;
+      }).join("");
+
+    } catch (error) {
+      cuerpoTabla.innerHTML = `<tr><td colspan="8"><span class="error">Error: ${error.message}</span></td></tr>`;
+    }
+  }
 </script>
 </body>
 </html>
