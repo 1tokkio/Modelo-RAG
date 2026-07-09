@@ -73,8 +73,19 @@
     .topbar h1    { font-size: .9rem; font-weight: 600; color: #fff; }
     .topbar-meta  { font-size: .75rem; color: var(--muted); border-left: 1px solid var(--border); padding-left: 14px; }
     .topbar-right { display: flex; align-items: center; gap: 10px; }
-    .status-dot   { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot   { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); transition: background .3s; }
+    .status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
     .status-label { font-size: .75rem; color: var(--muted); }
+
+    .health-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 12px; font-size: .72rem; color: var(--muted);
+    }
+    .health-item { display: flex; align-items: center; gap: 5px; }
+    .health-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .health-dot.error { background: var(--red); }
+    .health-dot.warn  { background: var(--amber); }
 
     .theme-toggle {
       background: var(--surface2);
@@ -270,8 +281,13 @@
     <span class="topbar-meta">ISY0101 · DuocUC · 2025</span>
   </div>
   <div class="topbar-right">
-    <div class="status-dot"></div>
-    <span class="status-label">Agente activo</span>
+    <div class="health-bar" id="health-bar" title="Estado de componentes">
+      <div class="health-item"><div class="health-dot" id="hd-llm"></div><span id="hl-llm">LLM</span></div>
+      <div class="health-item"><div class="health-dot" id="hd-chroma"></div><span>ChromaDB</span></div>
+      <div class="health-item"><div class="health-dot" id="hd-datos"></div><span>Datos</span></div>
+    </div>
+    <div class="status-dot" id="status-dot"></div>
+    <span class="status-label" id="status-label">comprobando...</span>
     <button class="theme-toggle" onclick="alternarTema(this)">☀ Modo claro</button>
   </div>
 </div>
@@ -567,14 +583,49 @@
 <footer>Agente RAG · LangChain + ChromaDB + GitHub Models · gpt-4o-mini</footer>
 
 <script>
-  // ── Configuración ─────────────────────────────────────────────────────
   const API_BASE = "http://127.0.0.1:8000";
-
-  // Instancias activas de Chart.js — se destruyen antes de recrear para evitar duplicados
   const graficos = {};
-
-  // Referencia al intervalo del auto-refresh del dashboard
   let intervaloAutoRefresh = null;
+
+
+  // ── Health check — auditor externo de componentes ─────────────────────
+
+  async function verificarSalud() {
+    try {
+      const datos = await fetch(`${API_BASE}/health`).then(r => r.json());
+
+      const estadoLLM    = datos.llm?.estado    === "OK";
+      const estadoChroma = datos.chromadb?.estado === "OK";
+      const estadoDatos  = datos.datos?.estado   === "OK";
+      const todoOk       = datos.sistema          === "OK";
+
+      // Puntos de componente individual
+      document.getElementById("hd-llm").className    = "health-dot" + (estadoLLM    ? "" : " error");
+      document.getElementById("hd-chroma").className = "health-dot" + (estadoChroma ? "" : " error");
+      document.getElementById("hd-datos").className  = "health-dot" + (estadoDatos  ? "" : " error");
+
+      // Tooltip con mensaje de error del LLM si existe
+      const errorLLM = datos.llm?.error;
+      document.getElementById("hl-llm").title = errorLLM || "";
+      document.getElementById("hl-llm").textContent = estadoLLM ? "LLM" : "LLM ✗";
+
+      // Indicador global
+      const dot   = document.getElementById("status-dot");
+      const label = document.getElementById("status-label");
+      dot.className   = "status-dot" + (todoOk ? "" : " error");
+      label.textContent = todoOk ? "Sistema OK" : (errorLLM ? `LLM: ${datos.llm.estado}` : "Sistema degradado");
+      label.style.color = todoOk ? "var(--muted)" : "var(--red)";
+
+    } catch {
+      document.getElementById("status-dot").className = "status-dot error";
+      document.getElementById("status-label").textContent = "Servidor no responde";
+      document.getElementById("status-label").style.color = "var(--red)";
+    }
+  }
+
+  // Verificar salud al cargar y cada 15 segundos
+  verificarSalud();
+  setInterval(verificarSalud, 15000);
 
 
   // ── Navegación ────────────────────────────────────────────────────────
