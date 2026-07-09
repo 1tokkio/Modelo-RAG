@@ -54,15 +54,16 @@ def consulta_general(body: Pregunta, request: Request):
     pregunta = validar_input(body.pregunta, "pregunta")
     verificar_rate_limit(ip)
 
-    t0       = time.time()
-    docs     = retriever.invoke(pregunta)
-    contexto = "\n\n".join(d.page_content for d in docs)
-    t_rag    = (time.time() - t0) * 1000
-
     error_msg       = None
     respuesta_texto = ""
-    t1 = time.time()
+    t_rag = t_llm = 0.0
     try:
+        t0       = time.time()
+        docs     = retriever.invoke(pregunta)
+        contexto = "\n\n".join(d.page_content for d in docs)
+        t_rag    = (time.time() - t0) * 1000
+
+        t1       = time.time()
         respuesta = cliente_llm.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.1,
@@ -79,13 +80,13 @@ def consulta_general(body: Pregunta, request: Request):
                 {"role": "user", "content": f"Contexto:\n{contexto}\n\nPregunta: {pregunta}"},
             ],
         )
+        t_llm           = (time.time() - t1) * 1000
         respuesta_texto = sanitizar_respuesta(respuesta.choices[0].message.content)
         return {"respuesta": respuesta_texto}
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        raise HTTPException(status_code=502, detail=f"Error del LLM: {type(e).__name__} — {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Error: {type(e).__name__} — {str(e)}")
     finally:
-        t_llm = (time.time() - t1) * 1000
         registrar_llamada("consulta", pregunta, t_rag + t_llm, error_msg is None, error_msg, respuesta_texto, t_rag, t_llm)
 
 
@@ -95,15 +96,16 @@ def alerta_reorden(body: AlertaSKU, request: Request):
     sku = validar_sku(body.sku)
     verificar_rate_limit(ip)
 
-    t0       = time.time()
-    docs     = retriever.invoke(f"inventario stock ventas {sku}")
-    contexto = "\n\n".join(d.page_content for d in docs)
-    t_rag    = (time.time() - t0) * 1000
-
     error_msg       = None
     respuesta_texto = ""
-    t1 = time.time()
+    t_rag = t_llm = 0.0
     try:
+        t0       = time.time()
+        docs     = retriever.invoke(f"inventario stock ventas {sku}")
+        contexto = "\n\n".join(d.page_content for d in docs)
+        t_rag    = (time.time() - t0) * 1000
+
+        t1       = time.time()
         respuesta = cliente_llm.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.1,
@@ -122,13 +124,13 @@ def alerta_reorden(body: AlertaSKU, request: Request):
                 {"role": "user", "content": f"Contexto:\n{contexto}\n\nAnaliza el SKU: {sku}"},
             ],
         )
+        t_llm           = (time.time() - t1) * 1000
         respuesta_texto = respuesta.choices[0].message.content
         return {"sku": sku, "analisis": respuesta_texto}
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        raise HTTPException(status_code=502, detail=f"Error del LLM: {type(e).__name__} — {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Error: {type(e).__name__} — {str(e)}")
     finally:
-        t_llm = (time.time() - t1) * 1000
         registrar_llamada("alerta", sku, t_rag + t_llm, error_msg is None, error_msg, respuesta_texto, t_rag, t_llm)
 
 
@@ -138,15 +140,16 @@ def recomendar_pedido(body: SolicitudPedido, request: Request):
     sku = validar_sku(body.sku)
     verificar_rate_limit(ip)
 
-    t0       = time.time()
-    docs     = retriever.invoke(f"pedido reorden proveedor lead time {sku} demanda ventas")
-    contexto = "\n\n".join(d.page_content for d in docs)
-    t_rag    = (time.time() - t0) * 1000
-
     error_msg       = None
     respuesta_texto = ""
-    t1 = time.time()
+    t_rag = t_llm = 0.0
     try:
+        t0       = time.time()
+        docs     = retriever.invoke(f"pedido reorden proveedor lead time {sku} demanda ventas")
+        contexto = "\n\n".join(d.page_content for d in docs)
+        t_rag    = (time.time() - t0) * 1000
+
+        t1       = time.time()
         respuesta = cliente_llm.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.1,
@@ -176,13 +179,13 @@ def recomendar_pedido(body: SolicitudPedido, request: Request):
                 },
             ],
         )
+        t_llm           = (time.time() - t1) * 1000
         respuesta_texto = respuesta.choices[0].message.content
         return {"sku": sku, "stock_actual": body.stock_actual, "recomendacion": respuesta_texto}
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        raise HTTPException(status_code=502, detail=f"Error del LLM: {type(e).__name__} — {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Error: {type(e).__name__} — {str(e)}")
     finally:
-        t_llm = (time.time() - t1) * 1000
         registrar_llamada("pedido", sku, t_rag + t_llm, error_msg is None, error_msg, respuesta_texto, t_rag, t_llm)
 
 

@@ -46,6 +46,30 @@ def verificar_llm() -> dict:
         return {"estado": "ERROR", "latencia_ms": None, "error": f"{type(e).__name__}: {str(e)}"}
 
 
+def verificar_embeddings() -> dict:
+    """
+    Prueba el endpoint de embeddings (distinto al del LLM).
+    Los embeddings usan OPENAI_EMBEDDINGS_URL y también requieren el GITHUB_TOKEN.
+    """
+    from openai import OpenAI as _OpenAI
+    client = _OpenAI(
+        base_url=os.getenv("OPENAI_EMBEDDINGS_URL"),
+        api_key=os.getenv("GITHUB_TOKEN"),
+    )
+    t0 = time.time()
+    try:
+        client.embeddings.create(model="text-embedding-3-small", input="test")
+        return {"estado": "OK", "latencia_ms": round((time.time() - t0) * 1000, 2), "error": None}
+    except AuthenticationError:
+        return {"estado": "ERROR_AUTH", "latencia_ms": None, "error": "Token inválido para el endpoint de embeddings"}
+    except APIConnectionError as e:
+        return {"estado": "ERROR_CONEXION", "latencia_ms": None, "error": f"Sin conexión al endpoint de embeddings: {str(e)}"}
+    except APIStatusError as e:
+        return {"estado": f"ERROR_HTTP_{e.status_code}", "latencia_ms": None, "error": str(e.message)}
+    except Exception as e:
+        return {"estado": "ERROR", "latencia_ms": None, "error": f"{type(e).__name__}: {str(e)}"}
+
+
 def verificar_chromadb() -> dict:
     """Comprueba que el índice vectorial exista en disco y no esté vacío."""
     chroma_dir = "./chroma_db"
@@ -66,16 +90,18 @@ def verificar_datos() -> dict:
 
 
 def estado_completo() -> dict:
-    """Ejecuta los tres diagnósticos y devuelve el estado global del sistema."""
-    llm    = verificar_llm()
-    chroma = verificar_chromadb()
-    datos  = verificar_datos()
+    """Ejecuta los cuatro diagnósticos y devuelve el estado global del sistema."""
+    llm        = verificar_llm()
+    embeddings = verificar_embeddings()
+    chroma     = verificar_chromadb()
+    datos      = verificar_datos()
 
-    componentes_ok = all(c["estado"] == "OK" for c in [llm, chroma, datos])
+    componentes_ok = all(c["estado"] == "OK" for c in [llm, embeddings, chroma, datos])
 
     return {
-        "sistema": "OK" if componentes_ok else "DEGRADADO",
-        "llm":      llm,
-        "chromadb": chroma,
-        "datos":    datos,
+        "sistema":    "OK" if componentes_ok else "DEGRADADO",
+        "llm":        llm,
+        "embeddings": embeddings,
+        "chromadb":   chroma,
+        "datos":      datos,
     }
