@@ -12,6 +12,7 @@ from rag import get_retriever
 from observability import registrar_llamada, obtener_resumen, obtener_eventos, obtener_analisis
 from security import validar_input, validar_sku, verificar_rate_limit, sanitizar_respuesta
 from diagnostico import estado_completo
+from agent import executor, obtener_historial, guardar_historial
 
 load_dotenv()
 
@@ -187,6 +188,35 @@ def recomendar_pedido(body: SolicitudPedido, request: Request):
         raise HTTPException(status_code=502, detail=f"Error: {type(e).__name__} — {str(e)}")
     finally:
         registrar_llamada("pedido", sku, t_rag + t_llm, error_msg is None, error_msg, respuesta_texto, t_rag, t_llm)
+
+
+@app.post("/agente")
+def agente(body: Pregunta, request: Request):
+    """
+    Endpoint del agente ReAct. El agente razona autónomamente y elige la herramienta
+    adecuada (consulta_inventario, analizar_sku o recomendar_pedido) según la pregunta.
+    Mantiene memoria de conversación dentro de la sesión y persiste el historial en disco.
+    """
+    ip       = request.client.host
+    pregunta = validar_input(body.pregunta, "pregunta")
+    verificar_rate_limit(ip)
+
+    resultado = executor.invoke({"input": pregunta})
+    respuesta = resultado.get("output", "")
+    guardar_historial(pregunta, respuesta)
+    return {"respuesta": respuesta}
+
+
+@app.get("/historial")
+def historial(limite: int = 20):
+    """
+    Historial persistente del agente. Devuelve los últimos intercambios pregunta-respuesta
+    guardados en disco (memoria de largo plazo entre reinicios del servidor).
+    """
+    return {
+        "historial": obtener_historial(limite),
+        "memoria_sesion": len(executor.memory.chat_memory.messages),
+    }
 
 
 @app.get("/health")
