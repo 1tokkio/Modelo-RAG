@@ -1,10 +1,6 @@
-"""
-diagnostico.py — Auditor independiente del estado del sistema.
 
-Verifica cada componente por separado sin depender del flujo normal de main.py,
-lo que permite detectar fallos del LLM incluso cuando la API sigue respondiendo.
-"""
 
+#Verifica cada componente por separado sin depender del flujo normal de main.py, o que permite detectar fallos del LLM incluso cuando la API sigue respondiendo.
 import os
 import time
 
@@ -13,12 +9,8 @@ from openai import OpenAI, AuthenticationError, APIConnectionError, APIStatusErr
 
 load_dotenv()
 
-
 def verificar_llm() -> dict:
-    """
-    Prueba la conexión al LLM con una llamada mínima real.
-    Distingue entre error de autenticación, error de red y otros fallos.
-    """
+    
     client = OpenAI(
         base_url=os.getenv("OPENAI_BASE_URL"),
         api_key=os.getenv("GITHUB_TOKEN"),
@@ -47,10 +39,7 @@ def verificar_llm() -> dict:
 
 
 def verificar_embeddings() -> dict:
-    """
-    Prueba el endpoint de embeddings (distinto al del LLM).
-    Los embeddings usan OPENAI_EMBEDDINGS_URL y también requieren el GITHUB_TOKEN.
-    """
+   
     from openai import OpenAI as _OpenAI
     client = _OpenAI(
         base_url=os.getenv("OPENAI_EMBEDDINGS_URL"),
@@ -69,9 +58,7 @@ def verificar_embeddings() -> dict:
     except Exception as e:
         return {"estado": "ERROR", "latencia_ms": None, "error": f"{type(e).__name__}: {str(e)}"}
 
-
 def verificar_chromadb() -> dict:
-    """Comprueba que el índice vectorial exista en disco y no esté vacío."""
     chroma_dir = "./chroma_db"
     if not os.path.exists(chroma_dir):
         return {"estado": "SIN_INDICE", "error": "chroma_db/ no existe — inicia el servidor para generarlo"}
@@ -79,18 +66,14 @@ def verificar_chromadb() -> dict:
         return {"estado": "INDICE_VACIO", "error": "chroma_db/ está vacío — elimínalo y reinicia el servidor"}
     return {"estado": "OK", "error": None}
 
-
 def verificar_datos() -> dict:
-    """Comprueba que el archivo de base de conocimiento esté presente."""
     ruta = "./data/inventario.txt"
     if not os.path.exists(ruta):
         return {"estado": "SIN_ARCHIVO", "error": "data/inventario.txt no encontrado"}
     size = os.path.getsize(ruta)
     return {"estado": "OK", "error": None, "bytes": size}
 
-
 def estado_completo() -> dict:
-    """Ejecuta los cuatro diagnósticos y devuelve el estado global del sistema."""
     llm        = verificar_llm()
     embeddings = verificar_embeddings()
     chroma     = verificar_chromadb()

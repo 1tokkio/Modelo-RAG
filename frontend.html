@@ -6,7 +6,6 @@
   <title>Retail S.A. — Agente de Inventario</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    /* ── Variables de color por tema ─────────────────────────────────── */
     :root {
       --bg:         #0f1117;
       --surface:    #1a1d27;
@@ -35,7 +34,6 @@
       --sidebar: #1e293b;
     }
 
-    /* ── Reset y base ─────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -47,7 +45,6 @@
       flex-direction: column;
     }
 
-    /* ── Barra superior ───────────────────────────────────────────────── */
     .topbar {
       background: var(--sidebar);
       border-bottom: 1px solid var(--border);
@@ -100,10 +97,10 @@
     }
     .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
 
-    /* ── Layout principal ─────────────────────────────────────────────── */
+    /* Layout principal  */
     .layout { display: flex; flex: 1; }
 
-    /* ── Barra lateral de navegación ──────────────────────────────────── */
+    /* Barra lateral de navegación */
     .sidebar {
       width: 210px;
       background: var(--sidebar);
@@ -130,14 +127,14 @@
     .nav-item:hover  { color: var(--text); background: rgba(255,255,255,.04); }
     .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--blue-bg); }
 
-    /* ── Área de contenido ────────────────────────────────────────────── */
+    /* Área de contenido */
     .main        { flex: 1; padding: 28px 32px; max-width: 980px; }
     .page        { display: none; }
     .page.active { display: block; }
     .page-title  { font-size: .8rem; color: var(--muted); margin-bottom: 20px; }
     .page-title span { color: var(--text); font-weight: 500; }
 
-    /* ── Tarjetas ─────────────────────────────────────────────────────── */
+    /* Tarjetas */
     .card       { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
     .card-top   { padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
     .card-title-row { display: flex; align-items: center; gap: 10px; }
@@ -145,7 +142,7 @@
     .card-body  { padding: 14px 20px 20px; }
     .card p.desc { font-size: .8rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
 
-    /* ── Badges ───────────────────────────────────────────────────────── */
+    /* Badges */
     .badge       { font-size: .65rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: .5px; text-transform: uppercase; }
     .badge-blue  { background: var(--blue-bg);           color: var(--accent); }
     .badge-amber { background: var(--amber-bg);          color: var(--amber); }
@@ -153,7 +150,7 @@
     .badge-muted { background: var(--surface2);          color: var(--muted); }
     .badge-red   { background: rgba(239,68,68,.15);      color: var(--red); }
 
-    /* ── Formularios ──────────────────────────────────────────────────── */
+    /* Formularios */
     label {
       display: block;
       font-size: .75rem; font-weight: 600; color: var(--muted);
@@ -177,7 +174,7 @@
     .row       { display: flex; gap: 12px; }
     .row > div { flex: 1; }
 
-    /* ── Botones ──────────────────────────────────────────────────────── */
+    /* Botones */
     .btn-primary {
       background: var(--accent); color: #fff;
       border: none; padding: 8px 18px;
@@ -196,7 +193,7 @@
     }
     .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
 
-    /* ── Indicador de carga ───────────────────────────────────────────── */
+    /* Indicador de carga */
     .loader {
       display: inline-block;
       width: 11px; height: 11px;
@@ -208,7 +205,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Caja de resultado ────────────────────────────────────────────── */
+    /* Caja de resultado */
     .resultado {
       display: none;
       margin-top: 14px;
@@ -225,7 +222,7 @@
     }
     .error { color: var(--red); font-size: .83rem; }
 
-    /* ── KPIs del dashboard ───────────────────────────────────────────── */
+    /* KPIs del dashboard */
     .kpi-grid  { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
     .kpi       { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
     .kpi-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
@@ -235,24 +232,24 @@
     .kpi.azul  .kpi-value { color: var(--accent); }
     .kpi.amber .kpi-value { color: var(--amber); }
 
-    /* ── Fila de percentiles ──────────────────────────────────────────── */
+    /* Fila de percentiles */
     .perc-row   { display: flex; gap: 8px; margin-top: 8px; }
     .perc       { flex: 1; background: var(--surface2); border-radius: 6px; padding: 8px 10px; text-align: center; }
     .perc-label { font-size: .65rem; color: var(--muted); margin-bottom: 2px; }
     .perc-val   { font-size: .95rem; font-weight: 700; color: var(--accent); }
 
-    /* ── Gráficos ─────────────────────────────────────────────────────── */
+    /*  Gráficos */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
     .chart-card  { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
     .chart-title { font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
     .chart-wrap  { position: relative; height: 190px; }
 
-    /* ── Página de análisis ───────────────────────────────────────────── */
+    /* Página de análisis */
     .patron-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .patron-item { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: .82rem; color: var(--text); }
     .rec-item    { background: var(--surface2); border-left: 3px solid var(--amber);  border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: .82rem; color: var(--text); }
 
-    /* ── Tabla de logs ────────────────────────────────────────────────── */
+    /* Tabla de logs  */
     .log-table    { width: 100%; border-collapse: collapse; font-size: .78rem; }
     .log-table th { text-align: left; padding: 8px 12px; font-size: .68rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
     .log-table td { padding: 8px 12px; border-bottom: 1px solid rgba(46,51,71,.5); color: var(--text); vertical-align: middle; }
@@ -264,7 +261,7 @@
     .pill-warn { background: var(--amber-bg);        color: var(--amber); }
     .anom-dot  { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-right: 4px; vertical-align: middle; }
 
-    /* ── Barra de acciones del dashboard ──────────────────────────────── */
+    /* Barra de acciones del dashboard */
     .dash-bar   { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
     .auto-badge { font-size: .7rem; color: var(--green); border: 1px solid var(--green-bg); background: var(--green-bg); padding: 3px 9px; border-radius: 20px; }
 
@@ -273,7 +270,7 @@
 </head>
 <body>
 
-<!-- ── Barra superior ─────────────────────────────────────────────────── -->
+<!-- Barra superior -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo">RS</div>
@@ -295,7 +292,7 @@
 
 <div class="layout">
 
-  <!-- ── Navegación lateral ──────────────────────────────────────────── -->
+  <!-- Navegación lateral -->
   <nav class="sidebar">
     <div class="sidebar-section">Módulos</div>
     <div class="nav-item active" onclick="mostrarPagina('consulta', this)">🔍 Consulta</div>
@@ -309,7 +306,7 @@
     <div class="nav-item" onclick="mostrarPagina('consistencia', this)">🧪 Consistencia</div>
   </nav>
 
-  <!-- ── Contenido principal ─────────────────────────────────────────── -->
+  <!-- Contenido principal -->
   <div class="main">
 
     <!-- MÓDULO: Consulta libre -->
@@ -587,9 +584,7 @@
   const API_BASE = "http://127.0.0.1:8000";
   const graficos = {};
   let intervaloAutoRefresh = null;
-
-
-  // ── Health check — auditor externo de componentes ─────────────────────
+  // Health check — auditor externo de componentes
 
   async function verificarSalud() {
     try {
@@ -632,7 +627,7 @@
   setInterval(verificarSalud, 15000);
 
 
-  // ── Navegación ────────────────────────────────────────────────────────
+  // Navegación 
 
   function mostrarPagina(idPagina, elementoNav) {
     // Desactivar página y nav activos
@@ -662,7 +657,7 @@
   }
 
 
-  // ── Helpers de UI ─────────────────────────────────────────────────────
+  // Helpers de UI 
 
   function activarCarga(boton) {
     boton.disabled = true;
@@ -676,7 +671,7 @@
   }
 
 
-  // ── Llamadas a la API de negocio ─────────────────────────────────────
+  // Llamadas a la API de negocio 
 
   async function llamarAPI(endpoint, cuerpo, idBoton, idResultado, claseTag, textoTag) {
     const boton     = document.getElementById(idBoton);
@@ -780,7 +775,7 @@
   }
 
 
-  // ── Dashboard ─────────────────────────────────────────────────────────
+  // Dashboard 
 
   function crearGrafico(idCanvas, tipo, datos, opcionesExtra = {}) {
     // Destruir el gráfico anterior si existe para evitar conflictos
@@ -908,7 +903,7 @@
   }
 
 
-  // ── Análisis de patrones ─────────────────────────────────────────────
+  // Análisis de patrones
 
   async function cargarAnalisis() {
     try {
@@ -941,7 +936,7 @@
   }
 
 
-  // ── Log de eventos ────────────────────────────────────────────────────
+  // Log de eventos 
 
   async function cargarLogs() {
     const cuerpoTabla = document.getElementById("tabla-logs");

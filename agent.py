@@ -22,9 +22,7 @@ _llm = OpenAI(
 _memoria_sesion: list[dict] = []
 
 
-# ---------------------------------------------------------------------------
 # Herramientas del agente
-# ---------------------------------------------------------------------------
 
 def consulta_inventario(pregunta: str) -> str:
     """Responde preguntas generales sobre inventario, productos y políticas de Retail S.A."""
